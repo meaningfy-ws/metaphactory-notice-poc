@@ -1,0 +1,89 @@
+services:
+  preload:
+    container_name: metaphactory-graphdb-preload
+    image: ontotext/graphdb:${GRAPHDB_VERSION}
+    profiles:
+      - data-import
+    entrypoint: [ "/opt/graphdb/dist/bin/importrdf", "preload", "--force", "--recursive", "-q", "/tmp", "-c", "/opt/graphdb/graphdb-repo-config.ttl", "/opt/graphdb/home/graphdb-import" ]
+
+    environment:
+      GDB_JAVA_OPTS: >-
+        -Xmx${GRAPHDB_HEAP_SIZE} -Xms${GRAPHDB_HEAP_SIZE}
+        -Dgraphdb.home=/opt/graphdb/home
+        -Dgraphdb.workbench.importDirectory=/opt/graphdb/home/graphdb-import
+        -Dgraphdb.workbench.cors.enable=true
+        -Denable-context-index=true
+        -Dentity-pool-implementation=transactional
+        -Dhealth.max.query.time.seconds=60
+        -Dgraphdb.append.request.id.headers=true
+        -Dreuse.vars.in.subselects=true
+    volumes:
+      - metaphactory_graphdb_data_volume:/opt/graphdb/home
+      - ${IMPORT_FOLDER}:/opt/graphdb/home/graphdb-import
+      - ${REPOSITORY_CONFIG_FILE}:/opt/graphdb/graphdb-repo-config.ttl
+
+  graphdb:
+    container_name: metaphactory-graphdb
+    image: ontotext/graphdb:${GRAPHDB_VERSION}
+    restart: unless-stopped
+    mem_limit: 2g
+    mem_reservation: 512m
+    stop_grace_period: 1m
+    profiles:
+      - service
+    environment:
+      GDB_JAVA_OPTS: >-
+        -XX:+UseContainerSupport -XX:InitialRAMPercentage=30.0
+        -XX:MaxRAMPercentage=75.0
+        -Dgraphdb.workbench.importDirectory=/opt/graphdb/home/graphdb-import
+        -Dorg.eclipse.rdf4j.rio.encode_rdf_star=false
+    ports:
+      - '7288:7200'
+    networks:
+      - metaphactory_network
+    volumes:
+      - metaphactory_graphdb_data_volume:/opt/graphdb/home
+      - ${REPOSITORY_CONFIG_FILE}:/opt/graphdb/graphdb-repo-config.ttl
+    logging:
+      driver: json-file
+      options:
+        max-size: 200k
+        max-file: '10'
+  
+  metaphactory:
+    image: 'metaphacts/metaphactory:5.3.0'
+    container_name: metaphactory
+    depends_on:
+      - graphdb
+    restart: unless-stopped
+    mem_limit: 1g
+    mem_reservation: 1g
+    profiles:
+      - service
+    environment:
+      JAVA_OPTS: >-
+        -Dconfig.ui.showClipboard=true
+      METAPHACTORY_OPTS: >-
+        -Dconfig.storage.runtime.type=nonVersionedFile 
+        -Dconfig.storage.runtime.mutable=true 
+        -Dconfig.storage.runtime.root=/storage/runtime
+    networks:
+      - metaphactory_network
+    ports:
+      - '8088:8080'
+    volumes:
+      - metaphactory_runtime_data:/runtime-data
+      - ${PROJECT_PATH}/apps/3rd_party_apps/nobel-prize/nobelprize-app:/apps/nobel-prize
+      - metaphactory_storage:/storage
+      - ${PROJECT_PATH}/infra/config/mp-graphdb-config.ttl:/runtime-data/config/repositories/default.ttl:rw
+    logging:
+      driver: json-file
+      options:
+        max-size: 200k
+        max-file: '10'
+volumes:
+  metaphactory_runtime_data:
+  metaphactory_storage:
+  metaphactory_graphdb_data_volume:
+networks:
+  metaphactory_network: null

@@ -1,0 +1,6 @@
+data/repository
+config/repository/default.ttl
+config/shiro-*.ini
+config/shiro.ini
+spec/
+*.kdbx
