@@ -1,0 +1,129 @@
+<!--                       CONSTANTS AND CONFIG VALUES                      -->
+<!--   Beware of extra spacing in below values as these would be preserved
+       and led to undesired effect!                                         -->
+
+<!-- <template-fragment export id="CFG_VAL_TEMPLATE">
+    {{#if arg}}{{arg}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_X}} {{/if}}
+</template-fragment> -->
+<template-fragment export id="DEFAULT_KEY_COL_WIDTH">2</template-fragment>
+<template-fragment export id="DEFAULT_KEY_COL_OFFSET">1</template-fragment>
+<template-fragment export id="DEFAULT_VALUE_COL_WIDTH">6</template-fragment>
+<template-fragment export id="DEFAULT_VALUE_COL_OFFSET">0</template-fragment>
+
+<!-- `key-sm` param: custom width of a key column -->
+<template-fragment export id="KEY_COL_WIDTH">{{#if key-sm}}{{key-sm}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_COL_WIDTH}} {{/if}}</template-fragment>
+<!-- `key-sm-offset` param: custom offset of a key column -->
+<template-fragment export id="KEY_COL_OFFSET">{{#if key-sm-offset}}{{key-sm-offset}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_COL_OFFSET}} {{/if}}</template-fragment>
+<!-- `val-sm` param: custom width of a value column -->
+<template-fragment export id="VALUE_COL_WIDTH">{{#if val-sm}}{{val-sm}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_COL_WIDTH}} {{/if}}</template-fragment>
+<!-- `val-sm-offset` param: custom offset of a value column -->
+<template-fragment export id="VALUE_COL_OFFSET">{{#if val-sm-offset}}{{val-sm-offset}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_COL_OFFSET}} {{/if}}</template-fragment>
+
+
+<!--                                PARTIALS                                -->
+<!-- 
+    Key-value row where value is a text.
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        value: text
+-->
+<!-- <template-fragment export id='KeyValueRow'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <h4>{{key}}: </h4>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p>{{value}}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment> -->
+
+<!-- #TODO test this reorganized template -->
+<template-fragment export id='KeyValueRow'>
+    <bs-row>
+        {{> Platform:customTemplateFragments::KeyValueCols}}
+    </bs-row>
+</template-fragment>
+
+<!-- These needs to be embedded within a bs-row! -->
+<template-fragment export id='KeyValueCols'>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+        <h4>{{key}}: </h4>
+    </bs-col>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+        <p>{{value}}</p>
+    </bs-col>
+</template-fragment>
+
+<!-- 
+    Key-value row where value is IRI with label provided by the caller.
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        iri: IRI to be transformed into URL within the app domain
+        label: text for the displayed hyperlink
+-->
+<template-fragment export id='KeyIriRow'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <h4>{{key}}: </h4>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p><semantic-link iri="{{iri}}">{{label}}</semantic-link></p>
+        </bs-col>
+    </bs-row>
+</template-fragment>
+
+<!-- 
+    Key-value row where value is IRI with label resolved by the system
+    (by label service relying on vocabularies loaded into system)
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        iri: IRI to be transformed into URL within the app domain
+-->
+<template-fragment export id='KeyIriRowAutoLabel'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <h4>{{key}}: </h4>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p><semantic-link iri="{{iri}}"><mp-label iri="{{iri}}"></mp-label></semantic-link></p>
+        </bs-col>
+    </bs-row>
+</template-fragment>
+
+<!-- 
+    Key-value row where value is IRI with label resolved by the system
+    (by label service relying on vocabularies loaded into system).
+    This is a variant of `KeyIriRowAutoLabel` dedicated for external resources.
+    These are visually distinguished by the use of italic text style.
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        iri: IRI to be transformed into URL within the app domain
+-->
+<template-fragment export id='KeyExtIriRowAutoLabel'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <h4>{{key}}: </h4>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p><semantic-link iri="{{iri}}"><i><mp-label iri="{{iri}}"></mp-label></i></semantic-link></p>
+        </bs-col>
+    </bs-row>
+</template-fragment>
+
+<!-- 
+    Displays money amount together with currency label.
+
+    params:
+        value: amount of money.
+        currency: an IRI representing currency. Label of the currency will be
+                  resolved using label service and displayed on the right side
+                  of the value.
+-->
+<!-- <template-fragment export id='FormatMoneyValue'>
+    {{value}} <mp-label iri="{{currency}}"></mp-label>
+</template-fragment> -->
