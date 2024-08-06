@@ -1,0 +1,2 @@
+preferredLabels = <http://www.w3.org/2000/01/rdf-schema#label>, <http://www.w3.org/2004/02/skos/core#prefLabel>, <http://xmlns.com/foaf/0.1/name>, <http://purl.org/dc/terms/title>
+preferredDescriptions = <http://www.w3.org/2000/01/rdf-schema#comment>, <https://schema.org/description>, <http://purl.org/dc/terms/description> 
