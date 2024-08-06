@@ -1,0 +1,261 @@
+<template-fragment id='entity'>
+  <semantic-link iri="{{iri}}">{{label}}</semantic-link>
+</template-fragment>
+<style>
+  .custom-page-content {
+    display: flex;
+    align-items: start;
+  }
+  .navigationSidebar {
+    width: 310px;
+    margin-left: 75px;
+    border: 1px solid var(--mp-color-primary-100);
+    z-index: 100;
+    position: sticky;
+    top: 70px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    line-height: 2.5em;
+  }
+  .custom-page-header {
+      padding: 16px 64px 16px 78px;
+    background-color: var(--mp-color-dark-50);
+    display: flex;
+    align-items: start;
+  }
+  .main-content {
+    padding: 8px 96px 8px 24px;
+    width: 100%;
+    border-top: 1px solid var(--mp-color-primary-100);
+  }
+  .wide-card {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .content-comment {
+    font-style: italic;
+  }
+  .no-content-comment {
+    font-style: italic;
+    color: gray;
+  }
+</style>
+<div class="page">
+  <div class='custom-page-content'>
+    <div id='page-nav' class='navigationSidebar'>
+      <p><a href='#overview'><b>Overview</b></a></p>
+      <p><a href='#lots'><b>Lots</b></a></p>
+      <p><a href='#buyer'><b>Buyer</b></a></p>
+      <p><a href='#procedure'><b>Procedure</b></a></p>
+      <p><a href='#lots'><b>Lots</b></a></p>
+      <p><a href='#tenders'><b>Tenders</b></a></p>
+    </div>
+    <div class='main-content' style='padding-top:24px'>
+      <h1 id="overview">Imprint</h1>
+      <semantic-query query="
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        SELECT DISTINCT ?notice ?dispatchDate ?id ?idStr ?publicationDate
+        WHERE {
+          BIND (?? as ?notice)
+          ?notice a epo:Notice .
+          ?notice epo:refersToProcedure ?procedure ;
+          epo:hasDispatchDate ?dispatchDate;
+          epo:hasID ?id ;
+          epo:hasPublicationDate ?publicationDate .
+          ?id epo:hasIdentifierValue ?idStr .
+        }
+        "
+        template='{{>tpl }}'>
+        <template id='tpl'>
+          {{#each bindings}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="IRI" iri=notice.value label=notice }}
+          {{> Platform:customTemplateFragments::KeyIriRow key="ID" iri=id.value label=idStr.value}}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=publicationDate.value }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value }}
+          <!-- {{> Platform:customTemplateFragments::KeyIriRow key="Procedure" iri=procedure.value label="procedure"}} -->
+          {{/each}}
+        </template>
+      </semantic-query>
+
+      <h1 id="lots">Lots</h1>
+      <semantic-query query="
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        SELECT DISTINCT ?procedure (COUNT(?lot) AS ?lots_cnt)
+        WHERE {
+          BIND (?? as ?notice)
+          ?notice a epo:Notice .
+          ?notice epo:refersToProcedure ?procedure .
+          ?procedure a epo:Procedure ;
+            epo:hasProcurementScopeDividedIntoLot ?lot .
+        }
+        GROUP BY ?procedure 
+        "
+        template='{{>tpl }}'>
+        <template id='tpl'>
+          {{#each bindings}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="IRI" iri=procedure.value label="IRI" }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Number of lots" value=lots_cnt.value }}
+          {{/each}}
+        </template>
+      </semantic-query>
+
+      <h1 id="buyer">Buyer</h1>
+      <semantic-query query="
+          PREFIX cccev: <http://data.europa.eu/m8g/> 
+          PREFIX org: <http://www.w3.org/ns/org#> 
+          PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+          SELECT ?buyerOrg ?legalName ?mainActivity ?orgAddress
+          WHERE {
+            BIND (?? as ?notice)
+            ?notice a epo:Notice .
+            ?notice epo:announcesRole ?role .
+            ?role a epo:Buyer ;
+              epo:playedBy ?buyerOrg .
+            ?buyerOrg a org:Organization ;
+              epo:hasLegalName ?legalName ;
+              epo:hasBuyerLegalType ?legalType ;
+              epo:hasMainActivity ?mainActivity ;
+              cccev:registeredAddress ?orgAddress .
+          }
+          "
+          template='{{>tpl2 }}'>
+        <template id='tpl2'>
+          {{#each bindings}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Buyer organization" iri=buyerOrg.value label=legalName.value }}
+          {{> Platform:customTemplateFragments::KeyExtIriRowAutoLabel key="Main activity" iri=mainActivity.value }}
+          {{/each}}
+        </template>
+      </semantic-query>
+
+      <h1 id="procedure">Procedure</h1>
+      <semantic-query query="
+          PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+          PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+          
+          PREFIX cccev: <http://data.europa.eu/m8g/> 
+          PREFIX org: <http://www.w3.org/ns/org#> 
+          PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+          SELECT ?notice ?procedure ?contractNatureType ?foreseesContractSpecificTerm ?additionalInformation ?description ?amountValue ?currencyLabel ?id ?mainFeature ?procedureType ?procurementScopeDividedIntoLot ?cpv ?title ?isSubjectToProcedureSpecificTerm
+          WHERE {
+            BIND (?? as ?notice)
+            ?notice a epo:Notice .
+            ?notice epo:refersToProcedure ?procedure .
+            ?procedure a epo:Procedure ;
+              epo:foreseesContractSpecificTerm [epo:hasContractNatureType ?contractNatureType] ;
+              epo:hasAdditionalInformation ?additionalInformation ;
+              epo:hasDescription ?description ;
+              epo:hasEstimatedValue [epo:hasAmountValue ?amountValue ; epo:hasCurrency ?currency ] ;
+              epo:hasID [epo:hasIdentifierValue ?id] ;
+              epo:hasMainFeature ?mainFeature ;
+              epo:hasProcedureType ?procedureType ;
+              epo:hasPurpose [epo:hasMainClassification ?cpv] ;
+              epo:hasTitle ?title ;
+              # epo:isSubjectToProcedureSpecificTerm ?procedureSpecificTerm .
+            SERVICE Service:label {
+              ?currency mplabel:label ?currencyLabel ;
+                mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            }
+          }
+        "
+        template='{{>tpl }}'>
+        <template id='tpl'>
+          {{#each bindings}}
+          {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=id.value }}
+          {{> Platform:customTemplateFragments::KeyExtIriRowAutoLabel key="Procedure type" iri=procedureType.value }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Title" value=title.value }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Description" value=description.value }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Estimated value" value=(number-format amountValue.value style="currency" currency=currencyLabel.value) }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Main feature" value=mainFeature.value }}
+        
+          {{> Platform:customTemplateFragments::KeyExtIriRowAutoLabel key="Purpose (CPV)" iri=cpv.value }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="A dditional information" value=additionalInformation.value }}
+          {{> Platform:customTemplateFragments::KeyExtIriRowAutoLabel key="Contract nature type" iri=contractNatureType.value }}          
+          <!-- #TODO {{> Platform:customTemplateFragments::X key="Procedure specific terms" iri=procedureSpecificTerm.value label=isSubjectToProcedureSpecificTerm.value }} -->
+
+          {{/each}}
+        </template>
+      </semantic-query>
+      <bs-row>
+        <bs-col sm="5">
+          <h1 id="lots">Lots</h1>
+        </bs-col>
+        <bs-col sm-offset="2" sm="5">
+          <h1 id="tenders">Tenders</h1>
+        </bs-col>
+      </bs-row>
+      <semantic-query query="
+        PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+        PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+        
+        PREFIX cccev: <http://data.europa.eu/m8g/> 
+        PREFIX org: <http://www.w3.org/ns/org#> 
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        SELECT ?lotId ?tender ?additionalInformation ?concessionMethod
+        WHERE {
+          BIND (?? as ?notice)
+          ?notice a epo:Notice ;
+            epo:refersToProcedure ?procedure .
+          ?procedure a epo:Procedure ;
+            epo:hasProcurementScopeDividedIntoLot ?lot .
+          ?lot a epo:Lot ;
+            epo:hasAdditionalInformation ?additionalInformation .
+          BIND(?lot AS ?defaultLotId)
+          OPTIONAL { ?lot epo:hasID [epo:hasIdentifierValue ?lotIdentifierValue ] . }
+          BIND(COALESCE(?lotIdentifierValue, ?defaultLotId) AS ?lotId)
+          OPTIONAL {
+            ?lot ^epo:isSubmittedForLot ?tender .
+            ?tender a epo:Tender ; 
+              ^epo:announcesTender ?notice ;
+              epo:foreseesConcession [epo:hasCalculationMethod ?concessionMethod ] .
+          }
+
+        }
+        "
+        template='{{>tpl }}'>
+        <template id='tpl'>
+          {{#each bindings}}
+          <bs-accordion class="wide-card">
+          <!-- <bs-accordion default-active-key="expand"> -->
+            <bs-card>
+              <bs-card-header>
+                <bs-row>
+                  <bs-col sm="5">
+                    {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=lotId.value }}
+                  </bs-col>
+                  <bs-col sm="2">
+                      {{#if tender}}
+                      <p class="content-comment">has associated tender</p>
+                      {{/if}}
+                  </bs-col>
+                  <bs-col sm="5">
+                    {{#if tender}}
+                      {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=tender.value }}
+                    {{else}}
+                      <p class="no-content-comment">no associated tender</p>
+                    {{/if}}
+                  </bs-col>
+                </bs-row>
+                <bs-accordion-toggle event-key="expand" class="btn btn-link">
+                  Show more
+                </bs-accordion-toggle>
+              </bs-card-header>
+              <bs-accordion-collapse event-key="expand">
+                <bs-card-body>
+                  <bs-row>
+                    {{> Platform:customTemplateFragments::KeyValueCols key="Additional information" key-sm-offset="0" key-sm="2" val-sm-offset="0" val-sm="3" value=additionalInformation.value }}
+                    {{> Platform:customTemplateFragments::KeyValueCols key="Concession method" key-sm-offset="2" key-sm="2" val-sm-offset="0" val-sm="2" value=concessionMethod.value }}
+                  </bs-row>
+                  <!-- {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=tender.value sm="2"}} -->
+                </bs-card-body>
+              </bs-accordion-collapse>
+            </bs-card>
+          </bs-accordion>
+          {{/each}}
+        </template>
+      </semantic-query>
+      
+    </div>
+
+  </div>
+</div>
