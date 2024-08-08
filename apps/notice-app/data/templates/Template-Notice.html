@@ -66,7 +66,8 @@
       ?notice epo:refersToProcedure ?procedure ;
       
       epo:hasID ?id ;
-      epo:hasPublicationDate ?publicationDate .
+      epo:hasPublicationDate ?_publicationDate .
+      BIND(STRDT(CONCAT(SUBSTR(?_publicationDate, 1, 4), '-', SUBSTR(?_publicationDate, 5, 2), '-', SUBSTR(?_publicationDate, 7, 2)), xsd:date) AS ?publicationDate).
       ?id epo:hasIdentifierValue ?idStr .
     }
     "
@@ -75,12 +76,55 @@
       {{#each bindings}}
       <!-- {{> Platform:customTemplateFragments::KeyIriRow key="IRI" iri=notice.value label=notice }} -->
       {{> Platform:customTemplateFragments::KeyIriRow key="ID" iri=id.value label=idStr.value}}
+      <!-- {{#bind pubDate=(dateTimeFormat publicationDate.value "YYYY-MM-DD") }}
+        {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=pubDate }}
+      {{/bind}} -->
       {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=publicationDate.value }}
       {{#if dispatchDate}}{{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value }}{{/if}}
       <!-- {{> Platform:customTemplateFragments::KeyIriRow key="Procedure" iri=procedure.value label="procedure"}} -->
       {{/each}}
     </template>
   </semantic-query>
+</template-fragment>
+<template-fragment id="tf-timeline">
+  <semantic-timeline id='timeline' no-result-template='No information available'
+    query='
+    PREFIX dct: <http://purl.org/dc/terms/>
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+    SELECT DISTINCT ?start ?label
+    WHERE {
+        { 
+            BIND (?? as ?notice)
+            BIND("Publication date" as ?label)
+            ?notice epo:hasPublicationDate ?_publicationDate .
+            BIND(STRDT(CONCAT(SUBSTR(?_publicationDate, 1, 4), "-", SUBSTR(?_publicationDate, 5, 2), "-", SUBSTR(?_publicationDate, 7, 2)), xsd:date) AS ?start).
+        } UNION {
+            BIND (?? as ?notice)
+            BIND("Dispatch date" as ?label)
+            ?notice epo:hasDispatchDate ?start .
+        } UNION {
+            BIND (?? as ?notice)
+            BIND("Issued" as ?label)
+            ?notice dct:issued ?start .
+        } UNION {
+            BIND (?? as ?notice)
+            BIND("Reception date" as ?label)
+            ?notice epo:hasReceptionDate ?start .
+        } UNION {
+            BIND (?? as ?notice)
+            BIND("E-sender dispatch date" as ?label)
+            ?notice epo:hasDispatchDate ?start .
+        }
+    }
+     '
+    tuple-template="{{> template}}" tuple-template-height='100'>
+    <template id="template">
+      <div>
+        <div><u><b>{{label.value}}</b></u></div> <div> {{start.value}}</div>
+      </div>
+    </template>
+  </semantic-timeline>
 </template-fragment>
 <template-fragment id="tf-lots">
   <semantic-query query="
@@ -783,6 +827,10 @@
       <p><a href='#tenders'><b>Tenders</b></a></p>
     </div>
     <div class='main-content'>
+      <div class="section">
+        <h1 id="timeline">Timeline</h1>
+        {{> ::tf-timeline}}
+      </div>
       <div class="section">
         <h1 id="buyer">Buyer</h1>
         {{> ::tf-buyer}}
