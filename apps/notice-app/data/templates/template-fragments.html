@@ -25,6 +25,21 @@
     Key-value row where value is a text.
 
     params:
+        iri: IRI to be transformed into URL within the app domain
+        label: optional; text for the displayed hyperlink. If not given, then
+               the label is resolved using Label Service.
+-->
+<template-fragment export id='Semlink'>
+    {{#if iri}}
+    <semantic-link iri="{{iri}}">{{#if label}}{{label}}{{else}}<mp-label iri="{{iri}}"></mp-label>{{/if}}</semantic-link>
+    {{^}}
+    {{/if}}
+</template-fragment>
+
+<!-- 
+    Key-value row where value is a text.
+
+    params:
         key: text to be displayed as a label on the left side of the value
         value: text
 -->
@@ -63,14 +78,25 @@
         key: text to be displayed as a label on the left side of the value
         iri: IRI to be transformed into URL within the app domain
         label: text for the displayed hyperlink
+        hide-if-undef: optional; true or false
 -->
 <template-fragment export id='KeyIriRow'>
+    {{#if iri}}
+    {{> Platform:customTemplateFragments::_KeyIriRow}}
+    {{^}}
+    {{#unless hide-if-undef}}
+    <p><i>No value for '{{key}}'' key.</i></p>
+    {{/unless}}
+    {{/if}}
+</template-fragment>
+<template-fragment export id='_KeyIriRow'>
     <bs-row>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
             <h4>{{key}}: </h4>
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
-            <p><semantic-link iri="{{iri}}">{{label}}</semantic-link></p>
+            <!-- <p><semantic-link iri="{{iri}}">{{label}}</semantic-link></p> -->
+            <p><i>{{> Platform:customTemplateFragments::Semlink}}</i></p>
         </bs-col>
     </bs-row>
 </template-fragment>
@@ -89,7 +115,8 @@
             <h4>{{key}}: </h4>
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
-            <p><semantic-link iri="{{iri}}"><mp-label iri="{{iri}}"></mp-label></semantic-link></p>
+            <!-- <p><semantic-link iri="{{iri}}"><mp-label iri="{{iri}}"></mp-label></semantic-link></p> -->
+            <p><i>{{> Platform:customTemplateFragments::Semlink}}</i></p>
         </bs-col>
     </bs-row>
 </template-fragment>
@@ -110,9 +137,23 @@
             <h4>{{key}}: </h4>
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
-            <p><semantic-link iri="{{iri}}"><i><mp-label iri="{{iri}}"></mp-label></i></semantic-link></p>
+            <!-- <p><semantic-link iri="{{iri}}"><i><mp-label iri="{{iri}}"></mp-label></i></semantic-link></p> -->
+             <p><i>{{> Platform:customTemplateFragments::Semlink}}</i></p>
         </bs-col>
     </bs-row>
+</template-fragment>
+
+<!-- 
+    params:
+        key:
+        value:
+        currency:
+-->
+<template-fragment export id="KeyMoneyRow">
+    {{#if (cond-and value currency) }}
+        {{> Platform:customTemplateFragments::KeyValueRow key=key value=(number-format value style="currency" currency=currency) }}
+    {{^}}
+    {{/if}}
 </template-fragment>
 
 <!-- 
