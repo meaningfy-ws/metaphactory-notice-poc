@@ -1,11 +1,8 @@
 <style>
-  .page {
-    display: flex;
-    align-items: start;
-  }
   .navigationSidebar {
     width: 310px;
-    margin-left: 75px;
+    margin-left: 5px;
+    margin-top: 8px;
     border: 1px solid var(--mp-color-primary-100);
     z-index: 100;
     position: sticky;
@@ -18,11 +15,15 @@
   .custom-page-header {
       padding: 16px 64px 16px 78px;
     background-color: var(--mp-color-dark-50);
+    /* display: flex; */
+    align-items: start;
+  }
+  .custom-page-content {
     display: flex;
     align-items: start;
   }
-  .body {
-    padding: 8px 96px 8px 24px;
+  .main-content {
+    padding: 6px 96px 8px 24px;
     width: 100%;
     border-top: 1px solid var(--mp-color-primary-100);
   }
@@ -39,6 +40,20 @@
   }
   .indent-l1 {
     padding-left: 8px;
+  }
+  .section {
+    background-color: rgb(252, 249, 253);
+    margin: 4px;
+    border: 1px solid var(--mp-color-primary-100);
+    padding: 8px 24px 8px 16px;
+    /* position: relative;
+    height: auto; */
+  }
+
+  /* TODO check if it is needed */
+  .DataTable--semantic-data-table {
+    position: relative;
+    height: auto;
   }
 </style>
 <template-fragment id="tf-overview">
@@ -58,10 +73,10 @@
     template='{{>tpl }}'>
     <template id='tpl'>
       {{#each bindings}}
-      {{> Platform:customTemplateFragments::KeyIriRow key="IRI" iri=notice.value label=notice }}
+      <!-- {{> Platform:customTemplateFragments::KeyIriRow key="IRI" iri=notice.value label=notice }} -->
       {{> Platform:customTemplateFragments::KeyIriRow key="ID" iri=id.value label=idStr.value}}
       {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=publicationDate.value }}
-      {{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value }}
+      {{#if dispatchDate}}{{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value }}{{/if}}
       <!-- {{> Platform:customTemplateFragments::KeyIriRow key="Procedure" iri=procedure.value label="procedure"}} -->
       {{/each}}
     </template>
@@ -83,8 +98,8 @@
     template='{{>tpl }}'>
     <template id='tpl'>
       {{#each bindings}}
-      {{> Platform:customTemplateFragments::KeyIriRow key="IRI" iri=procedure.value label="IRI" }}
       {{> Platform:customTemplateFragments::KeyValueRow key="Number of lots" value=lots_cnt.value }}
+      
       {{/each}}
     </template>
   </semantic-query>
@@ -711,6 +726,16 @@
 
 <!-- ------------------------------Page structure ------------------------  -->
 <div class="page">
+  <div id='overview' class='custom-page-header'>
+    <div>
+      <h1 id="notice-overview">Imprint</h1>
+    </div>
+    <div>
+      {{> ::tf-overview}}
+    </div>
+    {{> ::tf-lots}}
+  </div>
+  <div class="custom-page-content">
     <div id='page-nav' class='navigationSidebar'>
       <p><a href='#overview'><b>Overview</b></a></p>
       <p><a href='#lots'><b>Lots</b></a></p>
@@ -720,18 +745,20 @@
       <p><a href='#lots'><b>Lots</b></a></p>
       <p><a href='#tenders'><b>Tenders</b></a></p>
     </div>
-    <div class='body' style='padding-top:24px'>
-      <h1 id="overview">Imprint</h1>
-      {{> ::tf-overview}}
-      <h1 id="lots">Lots</h1>
-      {{> ::tf-lots}}
-      <h1 id="buyer">Buyer</h1>
-      {{> ::tf-buyer}}
-      <h1 id="procedure">Procedure</h1>
-      {{> ::tf-procedure}}
-      <h2 id="procedure_terms">Procedure specific terms</h2>
-      {{> ::tf-procedure-terms-all}}
-      <div class="container">
+    <div class='main-content'>
+      <div class="section">
+        <h1 id="buyer">Buyer</h1>
+        {{> ::tf-buyer}}
+      </div>
+      <div class="section">
+        <h1 id="procedure">Procedure</h1>
+        {{> ::tf-procedure}}
+      </div>
+      <div class="section">
+        <h2 id="procedure_terms">Procedure specific terms</h2>
+        {{> ::tf-procedure-terms-all}}  
+      </div>
+      <div class="section">
         <bs-row>
           <bs-col sm="5">
             <h1 id="lots">Lots</h1>
@@ -743,4 +770,5 @@
         {{> ::tf-lots-and-tenders}}
       </div>
     </div>
+  </div>
 </div>

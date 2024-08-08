@@ -1,3 +1,18 @@
+<style>
+    .kv-key-label {
+        padding-left: 8px;
+        color: rgb(149, 150, 154);
+        font-size: 0.9em;   
+    }
+    .kv-discrete-value-label {
+        background-color: rgb(166, 174, 208);
+        font-size: 1.1em;   
+    }
+    .kv-value-label {
+        font-size: 1.1em;   
+    }
+</style>
+
 <!--                       CONSTANTS AND CONFIG VALUES                      -->
 <!--   Beware of extra spacing in below values as these would be preserved
        and led to undesired effect!                                         -->
@@ -5,10 +20,11 @@
 <!-- <template-fragment export id="CFG_VAL_TEMPLATE">
     {{#if arg}}{{arg}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_X}} {{/if}}
 </template-fragment> -->
-<template-fragment export id="DEFAULT_KEY_COL_WIDTH">2</template-fragment>
-<template-fragment export id="DEFAULT_KEY_COL_OFFSET">1</template-fragment>
-<template-fragment export id="DEFAULT_VALUE_COL_WIDTH">6</template-fragment>
+<template-fragment export id="DEFAULT_KEY_COL_WIDTH">3</template-fragment>
+<template-fragment export id="DEFAULT_KEY_COL_OFFSET">0</template-fragment>
+<template-fragment export id="DEFAULT_VALUE_COL_WIDTH">9</template-fragment>
 <template-fragment export id="DEFAULT_VALUE_COL_OFFSET">0</template-fragment>
+<!-- <template-fragment export id="DEFAULT_KEY_HEADER">4</template-fragment> -->
 
 <!-- `key-sm` param: custom width of a key column -->
 <template-fragment export id="KEY_COL_WIDTH">{{#if key-sm}}{{key-sm}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_COL_WIDTH}} {{/if}}</template-fragment>
@@ -18,6 +34,7 @@
 <template-fragment export id="VALUE_COL_WIDTH">{{#if val-sm}}{{val-sm}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_COL_WIDTH}} {{/if}}</template-fragment>
 <!-- `val-sm-offset` param: custom offset of a value column -->
 <template-fragment export id="VALUE_COL_OFFSET">{{#if val-sm-offset}}{{val-sm-offset}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_COL_OFFSET}} {{/if}}</template-fragment>
+<!-- <template-fragment export id="KEY_HEADER">{{#if header}}{{header}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_HEADER}} {{/if}}</template-fragment> -->
 
 
 <!--                                PARTIALS                                -->
@@ -64,10 +81,10 @@
 <!-- These needs to be embedded within a bs-row! -->
 <template-fragment export id='KeyValueCols'>
     <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
-        <h4>{{key}}: </h4>
+        <p class="kv-key-label">{{key}}</p>
     </bs-col>
     <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
-        <p>{{value}}</p>
+        <p class="kv-value-label">{{value}}</p>
     </bs-col>
 </template-fragment>
 
@@ -92,11 +109,11 @@
 <template-fragment export id='_KeyIriRow'>
     <bs-row>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
-            <h4>{{key}}: </h4>
+            <p class="kv-key-label">{{key}}</p>
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
             <!-- <p><semantic-link iri="{{iri}}">{{label}}</semantic-link></p> -->
-            <p><i>{{> Platform:customTemplateFragments::Semlink}}</i></p>
+            <p class="kv-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
         </bs-col>
     </bs-row>
 </template-fragment>
@@ -112,11 +129,11 @@
 <template-fragment export id='KeyIriRowAutoLabel'>
     <bs-row>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
-            <h4>{{key}}: </h4>
+            <p class="kv-key-label">{{key}}</p>
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
             <!-- <p><semantic-link iri="{{iri}}"><mp-label iri="{{iri}}"></mp-label></semantic-link></p> -->
-            <p><i>{{> Platform:customTemplateFragments::Semlink}}</i></p>
+            <p class="kv-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
         </bs-col>
     </bs-row>
 </template-fragment>
@@ -134,11 +151,11 @@
 <template-fragment export id='KeyExtIriRowAutoLabel'>
     <bs-row>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
-            <h4>{{key}}: </h4>
+            <p class="kv-key-label">{{key}}</p>
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
             <!-- <p><semantic-link iri="{{iri}}"><i><mp-label iri="{{iri}}"></mp-label></i></semantic-link></p> -->
-             <p><i>{{> Platform:customTemplateFragments::Semlink}}</i></p>
+             <p class="kv-discrete-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
         </bs-col>
     </bs-row>
 </template-fragment>
