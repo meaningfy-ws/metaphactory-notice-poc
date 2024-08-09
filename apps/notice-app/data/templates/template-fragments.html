@@ -121,12 +121,14 @@
 
 <!-- These needs to be embedded within a bs-row! -->
 <template-fragment export id='KeyLongValueCols'>
-    <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
-        <p class="kv-key-label">{{key}}</p>
-    </bs-col>
-    <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
-        <p class="kv-value-label">{{> Platform:customTemplateFragments::TruncateText text=value}}</p>
-    </bs-col>
+    {{#if value}}
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label">{{> Platform:customTemplateFragments::TruncateText text=value}}</p>
+        </bs-col>
+    {{/if}}
 </template-fragment>
 
 <!-- 
