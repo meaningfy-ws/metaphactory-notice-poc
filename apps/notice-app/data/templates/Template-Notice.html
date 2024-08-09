@@ -308,7 +308,7 @@
     <template id='tpl2'>
       {{#each bindings}}
       {{> Platform:customTemplateFragments::KeyIriRow key="Buyer organization" iri=buyerOrg.value label=legalName.value }}
-      {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity label=mainActivityLabel.value hide-if-undef=true}}
+      {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity.value label=mainActivityLabel.value hide-if-undef=true}}
       {{/each}}
     </template>
   </semantic-query>
@@ -452,14 +452,14 @@
     <template id='tpl'>
       {{#each bindings}}
       {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=id.value }}
-      {{#if procedureType}}{{> Platform:customTemplateFragments::KeyIriRow key="Procedure type" iri=procedureType label=procedureTypeLabel.value hide-if-undef=true}}{{/if}}
+      {{#if procedureType}}{{> Platform:customTemplateFragments::KeyIriRow key="Procedure type" iri=procedureType.value label=procedureTypeLabel.value hide-if-undef=true}}{{/if}}
       {{> Platform:customTemplateFragments::KeyValueRow key="Title" value=title.value }}
       {{> Platform:customTemplateFragments::KeyLongValueRow key="Description" value=description.value }}
       {{#if estimatedValue}}{{> Platform:customTemplateFragments::KeyValueRow key="Estimated value" value=(number-format estimatedValue.value style="currency" currency=estValCurrencyLabel.value) }}{{/if}}
       {{> Platform:customTemplateFragments::KeyValueRow key="Main feature" value=mainFeature.value }}
-      {{#if cpv }}{{> Platform:customTemplateFragments::KeyIriRow key="Purpose (CPV)" iri=cpv label=cpvLabel.value }}{{/if}}
+      {{#if cpv }}{{> Platform:customTemplateFragments::KeyIriRow key="Purpose (CPV)" iri=cpv.value label=cpvLabel.value }}{{/if}}
       {{> Platform:customTemplateFragments::KeyLongValueRow key="Additional information" value=additionalInformation.value }}
-      {{#if contractNatureType }}{{> Platform:customTemplateFragments::KeyIriRow key="Contract nature type" iri=contractNatureType label=contractNatureTypeLabel.value }} {{/if}}
+      {{#if contractNatureType }}{{> Platform:customTemplateFragments::KeyIriRow key="Contract nature type" iri=contractNatureType.value label=contractNatureTypeLabel.value }} {{/if}}
       <bs-accordion class="wide-card">
         <!-- <bs-accordion default-active-key="expand"> -->
           <bs-card>
@@ -489,7 +489,7 @@
                   {{> Platform:customTemplateFragments::KeyValueRow key="concession" value=concession.value }}
                   {{> Platform:customTemplateFragments::KeyValueRow key="launchFrameworkAgreementMaximumValue" value=launchFrameworkAgreementMaximumValue.value }}
                   {{> Platform:customTemplateFragments::KeyLongValueRow key="legalBasisDescription" value=legalBasisDescription.value }}
-                  {{> Platform:customTemplateFragments::KeyIriRow key="legalBasis" iri=legalBasis label=legalBasisLabel.value hide-if-undef=true}}
+                  {{> Platform:customTemplateFragments::KeyIriRow key="legalBasis" iri=legalBasis.value label=legalBasisLabel.value hide-if-undef=true}}
                   {{> Platform:customTemplateFragments::KeyValueRow key="usesTechnique" value=usesTechnique.value }}
                   {{> Platform:customTemplateFragments::KeyValueRow key="SubjectToTerm" value=SubjectToTerm.value }}
                   {{> Platform:customTemplateFragments::KeyValueRow key="fulfillsStrategicProcurement" value=fulfillsStrategicProcurement.value }}
@@ -578,7 +578,7 @@
         {{> Platform:customTemplateFragments::Semlink iri=procType.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm label=pstLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value label=pstLabel.value}}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
           {{#if infoProviderOrg}}{{> Platform:customTemplateFragments::KeyIriRow key="Information provider" iri=infoProviderOrg.value label=(string-of infoProviderName.value " (" infoProviderId.value ")") hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
@@ -645,10 +645,10 @@
         {{> Platform:customTemplateFragments::Semlink iri=procType.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm label=pstLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value label=pstLabel.value}}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
-          {{> Platform:customTemplateFragments::KeyIriRow key="Direct justification" iri=directJustification label=directJustificationLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Direct justification" iri=directJustification.value label=directJustificationLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyLongValueRow key="Justification" value=justification.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyIriRowAutoLabel key="Previous procedure" iri=previousProcedure.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
           {{> Platform:customTemplateFragments::KeyIriRowAutoLabel key="Previous procedure Lot" iri=previousProcedureLot.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
@@ -779,11 +779,11 @@
         {{> Platform:customTemplateFragments::Semlink iri=term.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm label=pstLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value label=pstLabel.value}}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
-          {{> Platform:customTemplateFragments::KeyIriRow key="Contract nature" iri=hasContractNatureType label=hasContractNatureTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow key="Additional contract nature" iri=hasAdditionalContractNatureType label=hasAdditionalContractNatureTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Contract nature" iri=hasContractNatureType.value label=hasContractNatureTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Additional contract nature" iri=hasAdditionalContractNatureType.value  label=hasAdditionalContractNatureTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
           {{#if placeOfPerformanceAddress}}{{> Platform:customTemplateFragments::KeyLongValueRow key="Performance address" value=placeOfPerformanceAddress.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
         </bs-card-text>
       </bs-card-body>
@@ -1023,7 +1023,7 @@
           <bs-card-header>
             <div>
               Lot <span><i>{{lotTitle.value}} ({{lotId.value}})</i></span> {{#if tender}}
-              has associated <span><i>{{tenderLabel.value}}</i></span> tender.
+              has associated <mp-label iri="{{tender.value}}"></mp-label> tender.
             {{else}}
               has no associated tender. 
             {{/if}}
@@ -1068,7 +1068,7 @@
             <bs-card-body>
               <bs-row>
                 <bs-col sm=6 id="lot-details" class="side-by-side-box">
-                  <p class="inner-title">Lot <b><i>{{lotId.value}}</i></b> details</p>
+                  <p class="inner-title">Lot <b><i>{{> Platform:customTemplateFragments::Semlink iri=lot.value }}</i></b> details</p>
                   <!-- {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=lotId.value }} -->
                   {{> Platform:customTemplateFragments::KeyValueRow key="title" value=lotTitle.value }}
                   {{> Platform:customTemplateFragments::KeyLongValueRow key="description" value=lotDescription.value }}
@@ -1077,9 +1077,9 @@
                   {{> Platform:customTemplateFragments::KeyMoneyRow key="Estimated value" value=lotRestatedEstValue.value currency=lotRestatedEstValCurrencyLabel.value }}
                   {{#if additionalInformation}}{{> Platform:customTemplateFragments::KeyLongValueCols key="Additional information" key-sm-offset="0" key-sm="2" val-sm-offset="0" val-sm="3" value=additionalInformation.value }}{{/if}}
                   {{> Platform:customTemplateFragments::KeyValueRow key="Channel" value=channel.value }}
-                  {{> Platform:customTemplateFragments::KeyBoolValueRow key="Is SME suitable" value=isSMESuitable }}
-                  {{> Platform:customTemplateFragments::KeyBoolValueRow key="Is using EU funds" value=isUsingEUFunds }}
-                  {{> Platform:customTemplateFragments::KeyBoolValueRow key="Is covered by GPA" value=isCoveredByGPA }}
+                  {{#if isSMESuitable}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is SME suitable" value=isSMESuitable.value }}{{/if}}
+                  {{#if isUsingEUFunds}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is using EU funds" value=isUsingEUFunds.value }}{{/if}}
+                  {{#if isCoveredByGPA}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is covered by GPA" value=isCoveredByGPA.value }}{{/if}}
                   {{> Platform:customTemplateFragments::KeyValueRow key="usesTechnique" value=usesTechnique.value }}
                 </bs-col>
                 {{#if tender}}
@@ -1169,9 +1169,9 @@
                       <template id='tpl'>
                         {{#each bindings}}
                         {{> Platform:customTemplateFragments::KeyIriRow key="Winner organization" iri=winnerOrg.value label=legalName.value hide-if-undef=true}}
-                        {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity label=mainActivityLabel.value hide-if-undef=true}}
-                        {{> Platform:customTemplateFragments::KeyIriRow key="Business size" iri=hasBusinessSize label=hasBusinessSizeLabel.value hide-if-undef=true}}
-                        {{> Platform:customTemplateFragments::KeyIriRow key="Award status" iri=awardStatus label=awardStatusLabel.value hide-if-undef=true}}
+                        {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity.value label=mainActivityLabel.value hide-if-undef=true}}
+                        {{> Platform:customTemplateFragments::KeyIriRow key="Business size" iri=hasBusinessSize.value label=hasBusinessSizeLabel.value hide-if-undef=true}}
+                        {{> Platform:customTemplateFragments::KeyIriRow key="Award status" iri=awardStatus.value label=awardStatusLabel.value hide-if-undef=true}}
                         {{#if lotAwardValue}}{{> Platform:customTemplateFragments::KeyValueRow key="Award value" value=(number-format lotAwardValue.value style="currency" currency=lotAwardCurrencyLabel.value) }}{{/if}}
                         
                         {{/each}}
@@ -1305,15 +1305,15 @@
                                 {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
                               </bs-card-header>
                               <bs-card-body class="term-card-body">
-                                <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term label=termLabel.value}}</h6>
+                                <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
                                 <bs-card-text>
                                   <p>{{stType.value}} </p>
-                                  <!-- FIXME {{> Platform:customTemplateFragments::KeyIriRow key="Languages" iri=hasLanguage label=hasLanguageLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}} -->
+                                  <!-- FIXME {{> Platform:customTemplateFragments::KeyIriRow key="Languages" iri=hasLanguage.value label=hasLanguageLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}} -->
                                   {{> Platform:customTemplateFragments::KeyValueRow key="Submission description" value=hasNonElectronicSubmissionDescription.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
                                   {{> Platform:customTemplateFragments::KeyValueRow key="Guarantee description" value=hasGuaranteeDescription.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
                                   {{> Platform:customTemplateFragments::KeyIriRow key="Late submission permission" iri=hasLateSubmissionPermission.value label=hasLateSubmissionPermissionLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
                                   
-                                  {{> Platform:customTemplateFragments::KeyBoolValueRow key="Is multiple tender submission allowed" value=isMultipleTenderSubmissionAllowed }}
+                                  {{#if isMultipleTenderSubmissionAllowed}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is multiple tender submission allowed" value=isMultipleTenderSubmissionAllowed.value }}{{/if}}
                                   <!-- TODO add rest of the fields -->
                                 </bs-card-text>
                               </bs-card-body>

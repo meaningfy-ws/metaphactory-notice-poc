@@ -108,7 +108,7 @@
     </bs-col>
     <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
         <p class="kv-value-label">
-            {{#if (cond-and value (cond-eq value true)) }}{{> Platform:customTemplateFragments::TRUE_AS_IMG}}{{^}}{{> Platform:customTemplateFragments::FALSE_AS_IMG}}{{/if}}
+            {{#if (cond-and value (cond-eq value "true")) }}{{> Platform:customTemplateFragments::TRUE_AS_IMG}}{{^}}{{> Platform:customTemplateFragments::FALSE_AS_IMG}}{{/if}}
         </p>
     </bs-col>
 </template-fragment>
