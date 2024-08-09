@@ -35,6 +35,12 @@
 <!-- `val-sm-offset` param: custom offset of a value column -->
 <template-fragment export id="VALUE_COL_OFFSET">{{#if val-sm-offset}}{{val-sm-offset}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_COL_OFFSET}} {{/if}}</template-fragment>
 <!-- <template-fragment export id="KEY_HEADER">{{#if header}}{{header}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_HEADER}} {{/if}}</template-fragment> -->
+<template-fragment export id="TRUE_AS_IMG">
+    <span class="material-symbols-outlined" style="font-size: 2em">check_circle</span> 
+</template-fragment>
+<template-fragment export id="FALSE_AS_IMG">
+    <span class="material-symbols-outlined" style="font-size: 2em">cancel</span> 
+</template-fragment>
 
 
 <!--                                PARTIALS                                -->
@@ -71,11 +77,12 @@
     </bs-row>
 </template-fragment> -->
 
-<!-- #TODO test this reorganized template -->
 <template-fragment export id='KeyValueRow'>
+    {{#if value}}
     <bs-row>
         {{> Platform:customTemplateFragments::KeyValueCols}}
     </bs-row>
+    {{/if}}
 </template-fragment>
 
 <!-- These needs to be embedded within a bs-row! -->
@@ -85,6 +92,40 @@
     </bs-col>
     <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
         <p class="kv-value-label">{{value}}</p>
+    </bs-col>
+</template-fragment>
+
+<template-fragment export id='KeyBoolValueRow'>
+    <bs-row>
+        {{> Platform:customTemplateFragments::KeyBoolValueCols}}
+    </bs-row>
+</template-fragment>
+
+<!-- These needs to be embedded within a bs-row! -->
+<template-fragment export id='KeyBoolValueCols'>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+        <p class="kv-key-label">{{key}}</p>
+    </bs-col>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+        <p class="kv-value-label">
+            {{#if (cond-and value (cond-eq value true)) }}{{> Platform:customTemplateFragments::TRUE_AS_IMG}}{{^}}{{> Platform:customTemplateFragments::FALSE_AS_IMG}}{{/if}}
+        </p>
+    </bs-col>
+</template-fragment>
+
+<template-fragment export id='KeyLongValueRow'>
+    <bs-row>
+        {{> Platform:customTemplateFragments::KeyLongValueCols}}
+    </bs-row>
+</template-fragment>
+
+<!-- These needs to be embedded within a bs-row! -->
+<template-fragment export id='KeyLongValueCols'>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+        <p class="kv-key-label">{{key}}</p>
+    </bs-col>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+        <p class="kv-value-label">{{> Platform:customTemplateFragments::TruncateText text=value}}</p>
     </bs-col>
 </template-fragment>
 
@@ -118,6 +159,15 @@
     </bs-row>
 </template-fragment>
 
+<template-fragment export id='KeyIriRowAutoLabel'>
+    {{#if iri}}
+    {{> Platform:customTemplateFragments::_KeyIriRowAutoLabel}}
+    {{^}}
+    {{#unless hide-if-undef}}
+    <p><i>No value for '{{key}}'' key.</i></p>
+    {{/unless}}
+    {{/if}}
+</template-fragment>
 <!-- 
     Key-value row where value is IRI with label resolved by the system
     (by label service relying on vocabularies loaded into system)
@@ -126,7 +176,7 @@
         key: text to be displayed as a label on the left side of the value
         iri: IRI to be transformed into URL within the app domain
 -->
-<template-fragment export id='KeyIriRowAutoLabel'>
+<template-fragment export id='_KeyIriRowAutoLabel'>
     <bs-row>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
             <p class="kv-key-label">{{key}}</p>
@@ -171,6 +221,29 @@
     {{^}}
     {{/if}}
 </template-fragment>
+
+<!-- 
+    params:    
+    text
+-->
+<template-fragment export id="TruncateText">
+  <mp-text-truncate lines="3" expand="{{> expand}}" collapse="{{> collapse}}">
+    <template id="expand">
+        <span style="color: gray;">...
+            <a><b>
+                <span class="material-symbols-outlined">unfold_more</span>
+            </b></a>
+        </span>
+    </template>
+    <template id="collapse">
+        <a><b>
+            <span class="material-symbols-outlined">unfold_less</span>
+        </b></a>
+    </template>
+    {{text}}
+  </mp-text-truncate>
+</template-fragment>
+
 
 <!-- 
     Displays money amount together with currency label.
