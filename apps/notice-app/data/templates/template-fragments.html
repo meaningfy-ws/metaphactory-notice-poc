@@ -95,6 +95,23 @@
     </bs-col>
 </template-fragment>
 
+
+<!-- Key-value row where value is a result of the given partial executed with the
+     context passed to this fragment.
+    params:
+        partial: name of the partial generating the value.
+-->
+<!-- <template-fragment export id='KeyPartialRow'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label">{{> (lookup . 'partial') }}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment> -->
+
 <template-fragment export id='KeyBoolValueRow'>
     <bs-row>
         {{> Platform:customTemplateFragments::KeyBoolValueCols}}
@@ -259,3 +276,59 @@
 <!-- <template-fragment export id='FormatMoneyValue'>
     {{value}} <mp-label iri="{{currency}}"></mp-label>
 </template-fragment> -->
+
+
+<!-- 
+    Displays IRIs as comma-separated values.
+
+    params:
+        bindings: list of objects with 'resource' and 'label' attributes.
+-->
+<template-fragment export id="IriCSValues">
+    {{#each bindings}}{{#if @first}}{{else}}, {{/if}}
+    <semantic-link uri="{{resource.value}}">{{label.value}}</semantic-link>
+    {{/each}}
+</template-fragment>
+
+<!-- 
+  Displays comma-separated list of fetched languages for the given resource.
+
+  params:
+    resource: IRI of the resource to be used as a subject in a BGP 
+-->
+<template-fragment export id="FetchLanguagesInline">
+    <semantic-query id="has-languages" query='
+        PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+        PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+        
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        
+        SELECT ?resource ?label
+        WHERE {
+            # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_SubmissionTerm_TT87XZ7rfCixVuS4Z9trMH> as ?resource)                  
+            # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_SubmissionTerm_TT87XZ7rfCixVuS4Z9trMH> as ?resource)                  
+            {{resource}} epo:hasLanguage ?resource 
+            SERVICE Service:label {
+            ?resource mplabel:label ?label ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            }
+        }
+        ' template="{{> Platform:customTemplateFragments::IriCSValues}}" style="display: inline;">
+    </semantic-query>
+</template-fragment>
+
+<!-- 
+    params:
+        key:
+        resource:
+-->
+<template-fragment export id="KeyFetchedLangsRow">
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label" style="display: inline;">{{> Platform:customTemplateFragments::FetchLanguagesInline}}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment>

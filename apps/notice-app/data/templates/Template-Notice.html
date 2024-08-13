@@ -1,3 +1,10 @@
+<!-- 
+# Conventions
+## Naming conventions
+1. structural template fragments follow dashed-style for identifiers and
+   functional (reusable) template fragments follow CamelCaseStyle
+-->
+
 <style>
   .navigationSidebar {
     width: 310px;
@@ -1096,74 +1103,74 @@
                   <div class="lots-inner-box">
                     <p class="inner-title">Winner</p>
                     <semantic-query query="
-                    PREFIX cccev: <http://data.europa.eu/m8g/> 
-                    PREFIX org: <http://www.w3.org/ns/org#> 
-                    
-                    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-                    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
-                    
-                    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
-                    
-                    SELECT
-                      ?winnerOrg
-                      ?legalName
-                      ?mainActivity
-                      ?orgAddress
-                      ?legalType
-                      ?businessSize
-                      ?businessSizeLabel
-                    
-                      ?awardStatus
-                      ?awardStatusLabel
-                      ?lotAwardValue
-                      ?lotAwardCurrencyLabel
-                    
-                    WHERE {
-                      
-                      BIND (?? as ?notice)
-                      BIND({{tender}} AS ?tender)
-                      ?notice a epo:Notice .
-                      ?notice epo:announcesRole ?role .
-                      ?tenderAwardOutcome epo:indicatesAwardToWinner|epo:indicatesAwardOfLotToWinner ?role ;
-                          epo:concernsTender|epo:describesTender ?tender .
-                    
-                      OPTIONAL {
+                        PREFIX cccev: <http://data.europa.eu/m8g/> 
+                        PREFIX org: <http://www.w3.org/ns/org#> 
                         
-                        ?tenderAwardOutcome
-                          ^epo:comprisesTenderAwardOutcome ?awardOutcome .
-                        OPTIONAL {
-                          ?awardOutcome epo:hasAwardStatus ?awardStatus 
-                          SERVICE Service:label {
-                            ?awardStatus mplabel:label ?awardStatusLabel ;
-                            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                        PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+                        PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+                        
+                        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+                        
+                        SELECT
+                          ?winnerOrg
+                          ?legalName
+                          ?mainActivity
+                          ?orgAddress
+                          ?legalType
+                          ?businessSize
+                          ?businessSizeLabel
+                        
+                          ?awardStatus
+                          ?awardStatusLabel
+                          ?lotAwardValue
+                          ?lotAwardCurrencyLabel
+                        
+                        WHERE {
+                          
+                          BIND (?? as ?notice)
+                          BIND({{tender}} AS ?tender)
+                          ?notice a epo:Notice .
+                          ?notice epo:announcesRole ?role .
+                          ?tenderAwardOutcome epo:indicatesAwardToWinner|epo:indicatesAwardOfLotToWinner ?role ;
+                              epo:concernsTender|epo:describesTender ?tender .
+                        
+                          OPTIONAL {
+                            
+                            ?tenderAwardOutcome
+                              ^epo:comprisesTenderAwardOutcome ?awardOutcome .
+                            OPTIONAL {
+                              ?awardOutcome epo:hasAwardStatus ?awardStatus 
+                              SERVICE Service:label {
+                                ?awardStatus mplabel:label ?awardStatusLabel ;
+                                mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                              }
+                            }
+                            OPTIONAL {
+                              ?awardOutcome epo:hasAwardedValue [
+                                  epo:hasAmountValue ?lotAwardValue ; epo:hasCurrency ?lotAwardCurrency 
+                                ] .
+                              SERVICE Service:label {
+                                ?lotAwardCurrency mplabel:label ?lotAwardCurrencyLabel ;
+                                mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                              }
+                            }
                           }
-                        }
-                        OPTIONAL {
-                          ?awardOutcome epo:hasAwardedValue [
-                              epo:hasAmountValue ?lotAwardValue ; epo:hasCurrency ?lotAwardCurrency 
-                            ] .
-                          SERVICE Service:label {
-                            ?lotAwardCurrency mplabel:label ?lotAwardCurrencyLabel ;
-                            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                          ?role a epo:Winner ;
+                              epo:playedBy ?winnerOrg .
+                          ?winnerOrg a org:Organization ;
+                            epo:hasLegalName ?legalName .
+                          OPTIONAL { ?winnerOrg epo:hasBuyerLegalType ?legalType }
+                          OPTIONAL { ?winnerOrg epo:hasMainActivity ?mainActivity }
+                          OPTIONAL { 
+                            ?winnerOrg epo:hasBusinessSize ?businessSize 
+                            SERVICE Service:label {
+                              ?businessSize mplabel:label ?businessSizeLabel ;
+                              mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                            }
                           }
+                          OPTIONAL { ?winnerOrg cccev:registeredAddress ?orgAddress }
+                          
                         }
-                      }
-                      ?role a epo:Winner ;
-                          epo:playedBy ?winnerOrg .
-                      ?winnerOrg a org:Organization ;
-                        epo:hasLegalName ?legalName .
-                      OPTIONAL { ?winnerOrg epo:hasBuyerLegalType ?legalType }
-                      OPTIONAL { ?winnerOrg epo:hasMainActivity ?mainActivity }
-                      OPTIONAL { 
-                        ?winnerOrg epo:hasBusinessSize ?businessSize 
-                        SERVICE Service:label {
-                          ?businessSize mplabel:label ?businessSizeLabel ;
-                          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                        }
-                      }
-                      OPTIONAL { ?winnerOrg cccev:registeredAddress ?orgAddress }
-                      
-                    }
                     
                         "
                         template='{{>tpl }}'>
@@ -1219,9 +1226,6 @@
                                 ?definesTenderReceiver
                                 ?definesTenderProcessor
                                 ?hasTenderValidityPeriod
-                                ?hasLanguage
-                                ?hasLanguageLabel
-                                # (GROUP_CONCAT(distinct str(?hasLanguageLabel); SEPARATOR=', ') as ?hasLanguages)
                                 ?hasVariantPermission
                                 ?hasSubmissionURL
                                 ?hasECataloguePermission
@@ -1234,6 +1238,7 @@
                                 ?hasTenderSubcontractingInformation
                                 ?hasLateSubmissionPermission
                                 ?hasLateSubmissionPermissionLabel
+                                ?hasLang
                                 
                               WHERE {
                                 BIND(?? as ?notice)
@@ -1266,13 +1271,7 @@
                                 OPTIONAL { ?term epo:definesTenderReceiver ?definesTenderReceiver }
                                 OPTIONAL { ?term epo:definesTenderProcessor ?definesTenderProcessor }
                                 OPTIONAL { ?term epo:hasTenderValidityPeriod ?hasTenderValidityPeriod }
-                                OPTIONAL { 
-                                  ?term epo:hasLanguage ?hasLanguage 
-                                  SERVICE Service:label {
-                                    ?hasLanguage mplabel:label ?hasLanguageLabel ;
-                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                                  }
-                                }
+                                BIND(EXISTS {?term epo:hasLanguage ?lang} AS ?hasLang)
                                 OPTIONAL { ?term epo:hasVariantPermission ?hasVariantPermission }
                                 OPTIONAL { ?term epo:hasSubmissionURL ?hasSubmissionURL }
                                 OPTIONAL { ?term epo:hasECataloguePermission ?hasECataloguePermission }
@@ -1314,6 +1313,7 @@
                                   
                                   {{#if isMultipleTenderSubmissionAllowed}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is multiple tender submission allowed" value=isMultipleTenderSubmissionAllowed.value }}{{/if}}
                                   <!-- TODO add rest of the fields -->
+                                  {{#if (cond-eq hasLang.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedLangsRow key="Languages" resource=term key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
                                 </bs-card-text>
                               </bs-card-body>
                             </bs-card>
