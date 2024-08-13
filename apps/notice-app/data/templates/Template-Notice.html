@@ -1363,6 +1363,145 @@
                           </semantic-table>
 
                         </bs-tab>
+                        <bs-tab event-key="3" title="Security clearance">
+                          <semantic-table query="
+                              PREFIX adms: <http://www.w3.org/ns/adms#> 
+                              PREFIX dct: <http://purl.org/dc/terms/> 
+                              PREFIX org: <http://www.w3.org/ns/org#> 
+                              PREFIX org: <http://www.w3.org/ns/org#> 
+                              PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+                              
+                              PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+                              PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+                              
+                              PREFIX cccev: <http://data.europa.eu/m8g/> 
+                              PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+                              
+                              SELECT 
+                                ## lot
+                                ?lot
+                                ?termType
+                                ?termTypeLabel
+                                ?term
+                                ?termLabel
+                                ?hasDeadline
+                                ?isSecurityClearanceRequired
+                                ?hasDescription
+                              WHERE {
+                                BIND(?? as ?notice)
+                                BIND({{lot}} as ?lot)
+                                BIND(epo:SecurityClearanceTerm AS ?termType)
+                                BIND('Security clearance term' AS ?termTypeLabel)
+                                ?notice a epo:Notice ;
+                                  epo:refersToProcedure ?procedure .
+                                ?procedure a epo:Procedure ;
+                                  epo:hasProcurementScopeDividedIntoLot ?lot .
+                                ?lot a epo:Lot ;
+                                  epo:isSubjectToLotSpecificTerm ?term .
+                              
+                                ?term a epo:SecurityClearanceTerm .
+                                
+                                OPTIONAL { ?term epo:hasDescription ?hasDescription }
+                                OPTIONAL { ?term epo:isSecurityClearanceRequired ?isSecurityClearanceRequired }
+                                OPTIONAL { ?term epo:hasDeadline ?hasDeadline } 
+                              }
+                                
+                            "
+                            number-of-displayed-rows="6" id="semantic-table-proc-spec-terms" tuple-template='
+                            <bs-card class="term-card h-100">
+                              <bs-card-header>
+                                {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
+                              </bs-card-header>
+                              <bs-card-body class="term-card-body">
+                                <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+                                <bs-card-text>
+                                  <p>{{stType.value}} </p>
+                                  
+                                  {{> Platform:customTemplateFragments::KeyValueRow key="Description" value=hasDescription.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{#if isSecurityClearanceRequired}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is required" value=isSecurityClearanceRequired.value }}{{/if}}
+                                  {{#if hasDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="deadline" value=(dateTimeFormat hasDeadline.value "YYYY-MM-DD") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+                                </bs-card-text>
+                              </bs-card-body>
+                            </bs-card>
+                            '>
+                          </semantic-table>
+
+                        </bs-tab>
+                        <bs-tab event-key="4" title="Framework agreement">
+                          <semantic-table query="
+                              PREFIX adms: <http://www.w3.org/ns/adms#> 
+                              PREFIX dct: <http://purl.org/dc/terms/> 
+                              PREFIX org: <http://www.w3.org/ns/org#> 
+                              PREFIX org: <http://www.w3.org/ns/org#> 
+                              PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+                              
+                              PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+                              PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+                              
+                              PREFIX cccev: <http://data.europa.eu/m8g/> 
+                              PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+                              
+                              SELECT 
+                                ## lot
+                                ?lot
+                                ?termType
+                                ?termTypeLabel
+                                ?term
+                                ?termLabel
+                                
+                                ?hasMaximumParticipantsNumber
+                                ?hasDurationExtensionJustification
+                                ?hasFrameworkAgreementType
+                                ?hasBuyerCategoryDescription
+                                ?hasFrameworkAgreementTypeLabel
+                                
+                              WHERE {
+                                BIND(?? as ?notice)
+                                BIND({{lot}} as ?lot)
+                                BIND(epo:FrameworkAgreementTerm AS ?termType)
+                                BIND('Framework agreement term' AS ?termTypeLabel)
+                                ?notice a epo:Notice ;
+                                  epo:refersToProcedure ?procedure .
+                                ?procedure a epo:Procedure ;
+                                  epo:hasProcurementScopeDividedIntoLot ?lot .
+                                ?lot a epo:Lot ;
+                                  epo:isSubjectToLotSpecificTerm ?term .
+                              
+                                ?term a epo:FrameworkAgreementTerm .
+                                
+                                OPTIONAL { ?term epo:hasMaximumParticipantsNumber ?hasMaximumParticipantsNumber }
+                                OPTIONAL { ?term epo:hasDurationExtensionJustification ?hasDurationExtensionJustification }
+                                OPTIONAL { 
+                                  ?term epo:hasFrameworkAgreementType ?hasFrameworkAgreementType
+                                  SERVICE Service:label {
+                                    ?hasFrameworkAgreementType mplabel:label ?hasFrameworkAgreementTypeLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
+                                OPTIONAL { ?term epo:hasBuyerCategoryDescription ?hasBuyerCategoryDescription } 
+                              }
+                                
+                            "
+                            number-of-displayed-rows="6" id="semantic-table-proc-spec-terms" tuple-template='
+                            <bs-card class="term-card h-100">
+                              <bs-card-header>
+                                {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
+                              </bs-card-header>
+                              <bs-card-body class="term-card-body">
+                                <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+                                <bs-card-text>
+                                  <p>{{stType.value}} </p>
+                                  {{> Platform:customTemplateFragments::KeyValueRow key="Maximum participants number" value=hasMaximumParticipantsNumber.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyLongValueRow key="Buyer category description"  value=hasBuyerCategoryDescription.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="Framework agreement type" iri=hasFrameworkAgreementType.value label=hasFrameworkAgreementTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  
+                                </bs-card-text>
+                              </bs-card-body>
+                            </bs-card>
+                            '>
+                          </semantic-table>
+
+                        </bs-tab>
                         <bs-tab event-key="1" title="Access">
                           <semantic-table query="
                               PREFIX adms: <http://www.w3.org/ns/adms#> 
