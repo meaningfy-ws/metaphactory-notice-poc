@@ -1192,7 +1192,7 @@
                   <div class="row">
                     <div class="term-container">
                       <bs-tabs id="tabs">
-                        <bs-tab event-key="1" title="Submission">
+                        <bs-tab event-key="2" title="Submission">
                           <semantic-table query="
                               PREFIX adms: <http://www.w3.org/ns/adms#> 
                               PREFIX dct: <http://purl.org/dc/terms/> 
@@ -1216,28 +1216,31 @@
                                 ?hasEAuctionURL
                                 ?hasReceiptDeadline
                                 ?hasReceiptExpressionDeadline
-                                ?isGuaranteeRequired
                                 ?hasReceiptPreliminaryMarketConsultationDeadline
-                                ?isAdvancedElectronicSignatureRequired
                                 ?hasReceiptParticipationRequestDeadline
-                                ?isMultipleTenderSubmissionAllowed
                                 ?hasReceiptTenderDeadline
+                                ?isGuaranteeRequired
+                                ?isAdvancedElectronicSignatureRequired
+                                ?isMultipleTenderSubmissionAllowed
                                 ?hasTenderValidityDuration
                                 ?definesTenderReceiver
                                 ?definesTenderProcessor
                                 ?hasTenderValidityPeriod
-                                ?hasVariantPermission
                                 ?hasSubmissionURL
-                                ?hasECataloguePermission
-                                ?hasNonElectronicSubmissionDescription
                                 ?hasESubmissionPermission
                                 ?hasESubmissionPermissionLabel
+                                ?hasVariantPermission
+                                ?hasVariantPermissionLabel
+                                ?hasECataloguePermission
+                                ?hasECataloguePermissionLabel
+                                ?hasLateSubmissionPermission
+                                ?hasLateSubmissionPermissionLabel
+                                ?hasNonElectronicSubmissionDescription
                                 ?hasNonElectronicSubmissionJustification
+                                ?hasNonElectronicSubmissionJustificationLabel
                                 ?hasLateSubmissionInformationDescription
                                 ?hasGuaranteeDescription
                                 ?hasTenderSubcontractingInformation
-                                ?hasLateSubmissionPermission
-                                ?hasLateSubmissionPermissionLabel
                                 ?hasLang
                                 
                               WHERE {
@@ -1272,9 +1275,21 @@
                                 OPTIONAL { ?term epo:definesTenderProcessor ?definesTenderProcessor }
                                 OPTIONAL { ?term epo:hasTenderValidityPeriod ?hasTenderValidityPeriod }
                                 BIND(EXISTS {?term epo:hasLanguage ?lang} AS ?hasLang)
-                                OPTIONAL { ?term epo:hasVariantPermission ?hasVariantPermission }
                                 OPTIONAL { ?term epo:hasSubmissionURL ?hasSubmissionURL }
-                                OPTIONAL { ?term epo:hasECataloguePermission ?hasECataloguePermission }
+                                OPTIONAL { 
+                                  ?term epo:hasVariantPermission ?hasVariantPermission
+                                  SERVICE Service:label {
+                                    ?hasVariantPermission mplabel:label ?hasVariantPermissionLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
+                                OPTIONAL { 
+                                  ?term epo:hasECataloguePermission ?hasECataloguePermission
+                                  SERVICE Service:label {
+                                    ?hasECataloguePermission mplabel:label ?hasECataloguePermissionLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
                                 OPTIONAL { ?term epo:hasNonElectronicSubmissionDescription ?hasNonElectronicSubmissionDescription }
                                 OPTIONAL {
                                   ?term epo:hasESubmissionPermission ?hasESubmissionPermission 
@@ -1283,7 +1298,13 @@
                                     mplabel:preferredLanguage ?__userPreferredLanguage__ .
                                   }
                                 }
-                                OPTIONAL { ?term epo:hasNonElectronicSubmissionJustification ?hasNonElectronicSubmissionJustification }
+                                OPTIONAL { 
+                                  ?term epo:hasNonElectronicSubmissionJustification ?hasNonElectronicSubmissionJustification
+                                  SERVICE Service:label {
+                                    ?hasNonElectronicSubmissionJustification mplabel:label ?hasNonElectronicSubmissionJustificationLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
                                 OPTIONAL { ?term epo:hasLateSubmissionInformationDescription ?hasLateSubmissionInformationDescription }
                                 OPTIONAL { ?term epo:hasGuaranteeDescription ?hasGuaranteeDescription }
                                 OPTIONAL { ?term epo:hasTenderSubcontractingInformation ?hasTenderSubcontractingInformation }
@@ -1306,14 +1327,160 @@
                                 <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
                                 <bs-card-text>
                                   <p>{{stType.value}} </p>
-                                  <!-- FIXME {{> Platform:customTemplateFragments::KeyIriRow key="Languages" iri=hasLanguage.value label=hasLanguageLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}} -->
-                                  {{> Platform:customTemplateFragments::KeyValueRow key="Submission description" value=hasNonElectronicSubmissionDescription.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyLinkRow key="submission URL" iri=?hasSubmissionURL}}
                                   {{> Platform:customTemplateFragments::KeyValueRow key="Guarantee description" value=hasGuaranteeDescription.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-                                  {{> Platform:customTemplateFragments::KeyIriRow key="Late submission permission" iri=hasLateSubmissionPermission.value label=hasLateSubmissionPermissionLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-                                  
+                                  {{> Platform:customTemplateFragments::KeyValueRow key="Tender subcontracting information" value=hasTenderSubcontractingInformation.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
                                   {{#if isMultipleTenderSubmissionAllowed}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is multiple tender submission allowed" value=isMultipleTenderSubmissionAllowed.value }}{{/if}}
-                                  <!-- TODO add rest of the fields -->
+                                  {{#if isGuaranteeRequired}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is guarantee required" value=isGuaranteeRequired.value }}{{/if}}
+                                  {{#if isAdvancedElectronicSignatureRequired}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is advanced electronic signature required" value=isAdvancedElectronicSignatureRequired.value }}{{/if}}
+                                  {{#if isMultipleTenderSubmissionAllowed}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is multiple tender submission allowed" value=isMultipleTenderSubmissionAllowed.value }}{{/if}}
+                                  
+                                  {{> Platform:customTemplateFragments::KeyLinkRow key="e-auction" iri=hasEAuctionURL}}
+                                  {{> Platform:customTemplateFragments::KeyLongValueRow key="Late submission information description" value=hasLateSubmissionInformationDescription.value hide-if-undef=true}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="Non electronic submission justification" iri=hasNonElectronicSubmissionJustification.value label=hasNonElectronicSubmissionJustificationLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="Late submission permission" iri=hasLateSubmissionPermission.value label=hasLateSubmissionPermissionLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="E submission permission" iri=hasESubmissionPermission.value label=hasESubmissionPermissionLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="Variant permission" iri=hasVariantPermission.value label=hasVariantPermissionLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="E catalogue permission" iri=hasECataloguePermission.value label=hasECataloguePermissionLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+
+                                  {{#if hasReceiptTenderDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Receipt tender deadline" value=(dateTimeFormat hasReceiptTenderDeadline.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+                                  {{#if hasReceiptExpressionDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Receipt expression deadline" value=(dateTimeFormat hasReceiptExpressionDeadline.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+                                  {{#if hasReceiptPreliminaryMarketConsultationDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Receipt preliminary market consultation deadline " value=(dateTimeFormat hasReceiptPreliminaryMarketConsultationDeadline.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+                                  {{#if hasReceiptParticipationRequestDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Receipt participation request deadline" value=(dateTimeFormat hasReceiptParticipationRequestDeadline.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+                                  
+                                  {{> Platform:customTemplateFragments::KeyLongValueRow key="Non electronic submission description" value=hasNonElectronicSubmissionDescription.value hide-if-undef=true}}
+                                  {{> Platform:customTemplateFragments::KeyLongValueRow key="Guarantee description" value=hasGuaranteeDescription.value hide-if-undef=true}}
+                                  
+                                  
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="Tender receiver" iri=definesTenderReceiver.value label=definesTenderReceiver.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow key="Tender processor" iri=definesTenderProcessor.value label=definesTenderProcessor.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                
                                   {{#if (cond-eq hasLang.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedLangsRow key="Languages" resource=term key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+                                </bs-card-text>
+                              </bs-card-body>
+                            </bs-card>
+                            '>
+                          </semantic-table>
+
+                        </bs-tab>
+                        <bs-tab event-key="1" title="Access">
+                          <semantic-table query="
+                              PREFIX adms: <http://www.w3.org/ns/adms#> 
+                              PREFIX dct: <http://purl.org/dc/terms/> 
+                              PREFIX org: <http://www.w3.org/ns/org#> 
+                              PREFIX org: <http://www.w3.org/ns/org#> 
+                              PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+                              
+                              PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+                              PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+                              
+                              PREFIX cccev: <http://data.europa.eu/m8g/> 
+                              PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+                              
+                              SELECT 
+                              
+                                ?lot
+                                ?term
+                                # ext URL
+                                ?hasRestrictedAccessURL
+                                ?hasPublicAccessURL
+                                # bool
+                                ?isProcurementDocumentRestricted
+                                # dates
+                                ?hasAdditionalInformationDeadline
+                                # iri
+                                ?involvesProcurementDocument
+                                ?definesProcurementProcedureInformationProvider
+                                ?definesOfflineAccessProvider
+                                ?definesCatalogueProvider
+                                ?definesCatalogueReceiver
+                                ?involvesProcurementDocumentLabel
+                                ?definesProcurementProcedureInformationProviderLabel
+                                ?definesOfflineAccessProviderLabel
+                                ?definesCatalogueProviderLabel
+                                ?definesCatalogueReceiverLabel
+                                # long or ext IRI
+                                ?hasDocumentRestrictionJustification
+                                # ???
+                                ?refersToPlannedPart
+                              WHERE {
+                                # BIND(?? as ?notice)
+                                BIND({{lot}} as ?lot)
+                                # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0001> as ?lot)
+                                ?notice a epo:Notice ;
+                                  epo:refersToProcedure ?procedure .
+                                ?procedure a epo:Procedure ;
+                                  epo:hasProcurementScopeDividedIntoLot ?lot .
+                                ?lot a epo:Lot ;
+                                  epo:isSubjectToLotSpecificTerm ?term .
+                                ?term a epo:AccessTerm .
+                                OPTIONAL { ?term epo:isProcurementDocumentRestricted ?isProcurementDocumentRestricted }
+                                OPTIONAL { ?term epo:hasRestrictedAccessURL ?hasRestrictedAccessURL }
+                                OPTIONAL { ?term epo:hasAdditionalInformationDeadline ?hasAdditionalInformationDeadline }
+                                OPTIONAL { ?term epo:hasPublicAccessURL ?hasPublicAccessURL }
+                                OPTIONAL {
+                                  ?term epo:involvesProcurementDocument ?involvesProcurementDocument
+                                  SERVICE Service:label {
+                                    ?involvesProcurementDocument mplabel:label ?involvesProcurementDocumentLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
+                                OPTIONAL {
+                                  ?term epo:definesProcurementProcedureInformationProvider ?definesProcurementProcedureInformationProvider
+                                  SERVICE Service:label {
+                                    ?definesProcurementProcedureInformationProvider mplabel:label ?definesProcurementProcedureInformationProviderLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
+                                OPTIONAL {
+                                  ?term epo:definesOfflineAccessProvider ?definesOfflineAccessProvider
+                                  SERVICE Service:label {
+                                    ?definesOfflineAccessProvider mplabel:label ?definesOfflineAccessProviderLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
+                                OPTIONAL {
+                                  ?term epo:definesCatalogueProvider ?definesCatalogueProvider
+                                  SERVICE Service:label {
+                                    ?definesCatalogueProvider mplabel:label ?definesCatalogueProviderLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
+                                OPTIONAL {
+                                  ?term epo:definesCatalogueReceiver ?definesCatalogueReceiver
+                                  SERVICE Service:label {
+                                    ?definesCatalogueReceiver mplabel:label ?definesCatalogueReceiverLabel ;
+                                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                                  }
+                                }
+                                OPTIONAL { ?term epo:refersToPlannedPart ?refersToPlannedPart }
+                                OPTIONAL { ?term epo:hasDocumentRestrictionJustification ?hasDocumentRestrictionJustification }
+                              }  
+                            "
+                            number-of-displayed-rows="6" id="semantic-table-proc-spec-terms" tuple-template='
+                            <bs-card class="term-card h-100">
+                              <bs-card-header>
+                                {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
+                              </bs-card-header>
+                              <bs-card-body class="term-card-body">
+                                <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+                                <bs-card-text>
+                                  <p>{{stType.value}} </p>
+                                  {{> Platform:customTemplateFragments::KeyIriRow iri=involvesProcurementDocument.value key="Involves procurement document" label=involvesProcurementDocumentLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow iri=definesProcurementProcedureInformationProvider.value key="Defines procurement procedure information provider" label=definesProcurementProcedureInformationProviderLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow iri=definesOfflineAccessProvider.value key="Defines offline access provider" label=definesOfflineAccessProviderLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow iri=definesCatalogueProvider.value key="Defines catalogue provider" label=definesCatalogueProviderLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyIriRow iri=definesCatalogueReceiver.value key="Defines catalogue receiver" label=definesCatalogueReceiverLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+
+                                  {{> Platform:customTemplateFragments::KeyLinkRow iri=hasRestrictedAccessURL key="Restricted access URL"}}
+                                  {{> Platform:customTemplateFragments::KeyLinkRow iri=hasPublicAccessURL key="Public access URL"}}
+
+                                  {{#if hasAdditionalInformationDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Additional informationDeadline deadline" value=(dateTimeFormat hasAdditionalInformationDeadline.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+                                  {{#if isProcurementDocumentRestricted}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is procurement document restricted" value=isProcurementDocumentRestricted.value }}{{/if}}
+
+                                  {{> Platform:customTemplateFragments::KeyValueRow key="hasDocumentRestrictionJustification" value=hasDocumentRestrictionJustification.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+                                  {{> Platform:customTemplateFragments::KeyValueRow key="refersToPlannedPart" value=refersToPlannedPart.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+             
                                 </bs-card-text>
                               </bs-card-body>
                             </bs-card>

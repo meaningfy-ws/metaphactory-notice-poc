@@ -59,6 +59,23 @@
     {{/if}}
 </template-fragment>
 
+<template-fragment export id='Link'>
+    <a href="{{iri.value}}">{{iri.value}}</a>
+</template-fragment>
+
+<template-fragment export id='KeyLinkRow'>
+    {{#if iri}}
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label">{{> Platform:customTemplateFragments::Link}}</p>
+        </bs-col>
+    </bs-row>
+    {{/if}}
+</template-fragment>
+
 <!-- 
     Key-value row where value is a text.
 
