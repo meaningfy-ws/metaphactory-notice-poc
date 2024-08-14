@@ -519,6 +519,8 @@
       ?hasAnyProcedureTerm
       ?hasAnyReviewTerm
       ?hasAnyDirectAwardTerm
+      ?hasAnyAccessTerm
+      ?hasAnyFrameworkAgreementTerm
     WHERE {
       BIND (?? as ?notice)
       # BIND (<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Notice> as ?notice)
@@ -531,6 +533,8 @@
       BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:ProcedureTerm] .} AS ?hasAnyProcedureTerm)
       BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:ReviewTerm] .} AS ?hasAnyReviewTerm)
       BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:DirectAwardTerm] .} AS ?hasAnyDirectAwardTerm)
+      BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:AccessTerm] .} AS ?hasAnyAccessTerm)
+      BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:FrameworkAgreementTerm] .} AS ?hasAnyFrameworkAgreementTerm)
     }
   "
   template='{{>tpl }}'>
@@ -544,12 +548,14 @@
                   (cond-eq hasAnyProcedureTerm.value "true")
                   (cond-eq hasAnyReviewTerm.value "true")
                   (cond-eq hasAnyDirectAwardTerm.value "true")
+                  (cond-eq hasAnyAccessTerm.value "true")
+                  (cond-eq hasAnyFrameworkAgreementTerm.value "true")
                 )
               }}
                 <bs-tabs id="tabs">
                   {{#bind procurementObject=procedure}}
                     {{#if (cond-eq hasAnyProcedureTerm.value "true")}}
-                    <bs-tab event-key="1" title="procedure">
+                    <bs-tab event-key="1" title="Procedure">
                       {{> ::tf-procedure-terms}}
                     </bs-tab>
                     {{/if}}
@@ -558,8 +564,22 @@
                       {{> ::tf-procurement-object-review-terms}}
                     </bs-tab>
                     {{/if}}
+                    {{#if (cond-eq hasAnyAccessTerm.value "true")}}
+                      <bs-tab event-key="3" title="Access">
+                        {{#bind procurementObject=procedure}}
+                          {{> ::procurement-object--access-terms}}
+                        {{/bind}}
+                      </bs-tab>
+                    {{/if}}
+                    {{#if (cond-eq hasAnyFrameworkAgreementTerm.value "true")}}
+                      {{#bind procurementObject=procedure}}
+                        <bs-tab event-key="4" title="Framework agreement">
+                          {{> ::tf-procurement-object--framework-agreement-terms}}
+                        </bs-tab>
+                      {{/bind}}
+                    {{/if}}
                     {{#if (cond-eq hasAnyDirectAwardTerm.value "true")}}
-                      <bs-tab event-key="3" title="direct award">
+                      <bs-tab event-key="5" title="Direct award">
                         {{> ::tf-procedure-direct-award-terms}}
                       </bs-tab>
                     {{/if}}
@@ -857,98 +877,105 @@
 </template-fragment>
 <template-fragment id="tf-contract-terms">
   <semantic-table query="
-  PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-  PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
-  
-  PREFIX locn: <http://www.w3.org/ns/locn#> 
-  PREFIX cccev: <http://data.europa.eu/m8g/> 
-  PREFIX org: <http://www.w3.org/ns/org#> 
-  PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-  
-  PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
-  
-  SELECT 
-    ?term
-    ?placeOfPerformanceAddress
-    ?hasAdditionalContractNature
-    ?hasAdditionalContractNatureLabel
-    ?hasBroadPlaceOfPerformance
-    ?hasBroadPlaceOfPerformanceLabel
-    ?hasContractNatureType
-    ?hasContractNatureTypeLabel
-    ?hasEInvoicingPermission
-    ?hasOptionsDescription
-    ?hasPaymentArrangement
-    ?hasPerformanceConditions
-    ?hasPlaceOfPerformanceAdditionalInformation
-    ?hasRenewalDescription
-    ?hasReservedExecution
-    ?definesContractDuration
-    ?definesContractPeriod
-    ?definesPaymentExecutor
-    ?definesSubcontractingTerm
-    ?hasEInvoicing
-    ?hasEOrdering
-    ?hasEPayment
-    ?hasLegalFormRequirement
-    ?hasMaximumNumberOfRenewals
-    ?hasOptions
-    ?isRenewalIndicator
-  WHERE {
-    BIND (?? as ?notice)
-    ?notice epo:refersToProcedure ?procedure .
-    ?procedure a epo:Procedure .
-    VALUES (?procType ?procTypeLabel ) {
-        (epo:ContractTerm 'Contract term')
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+    PREFIX locn: <http://www.w3.org/ns/locn#> 
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX org: <http://www.w3.org/ns/org#> 
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+
+    SELECT 
+      ?notice
+      
+      ?term
+      ?termLabel
+      ?termType
+      ?termTypeLabel
+
+      ?placeOfPerformanceAddress
+      ?hasAdditionalContractNature
+      ?hasAdditionalContractNatureLabel
+      ?hasBroadPlaceOfPerformance
+      ?hasBroadPlaceOfPerformanceLabel
+      ?hasContractNatureType
+      ?hasContractNatureTypeLabel
+      ?hasEInvoicingPermission
+      ?hasOptionsDescription
+      ?hasPaymentArrangement
+      ?hasPerformanceConditions
+      ?hasPlaceOfPerformanceAdditionalInformation
+      ?hasRenewalDescription
+      ?hasReservedExecution
+      ?definesContractDuration
+      ?definesContractPeriod
+      ?definesPaymentExecutor
+      ?definesSubcontractingTerm
+      ?hasEInvoicing
+      ?hasEOrdering
+      ?hasEPayment
+      ?hasLegalFormRequirement
+      ?hasMaximumNumberOfRenewals
+      ?hasOptions
+      ?isRenewalIndicator
+    WHERE {
+      BIND (?? as ?notice)
+      ?notice epo:refersToProcedure ?procedure .
+      ?procedure a epo:Procedure .
+      VALUES (?termType ?termTypeLabel ) {
+          (epo:ContractTerm 'Contract term')
+      }
+      ?procedure epo:foreseesContractSpecificTerm ?term .
+      ?term a ?termType .
+      SERVICE Service:label {
+        ?term mplabel:label ?termLabel ;
+        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+      OPTIONAL { ?term epo:definesSpecificPlaceOfPerformance [
+        locn:address [ locn:fullAddress ?placeOfPerformanceAddress ]
+      ] }
+      OPTIONAL {
+        ?term epo:hasAdditionalContractNature ?hasAdditionalContractNature .
+        SERVICE Service:label {
+          ?hasAdditionalContractNature mplabel:label ?hasAdditionalContractNatureLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+        }
+      }
+      OPTIONAL { 
+        ?term epo:hasBroadPlaceOfPerformance ?hasBroadPlaceOfPerformance 
+        SERVICE Service:label {
+          ?hasBroadPlaceOfPerformance mplabel:label ?hasBroadPlaceOfPerformanceLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+        }  
+      }
+      OPTIONAL {
+        ?term epo:hasContractNatureType ?hasContractNatureType 
+        SERVICE Service:label {
+          ?hasContractNatureType mplabel:label ?hasContractNatureTypeLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+        }  
+      }
+      OPTIONAL { ?term epo:hasEInvoicingPermission ?hasEInvoicingPermission }
+      OPTIONAL { ?term epo:hasOptionsDescription ?hasOptionsDescription }
+      OPTIONAL { ?term epo:hasPaymentArrangement ?hasPaymentArrangement }
+      OPTIONAL { ?term epo:hasPerformanceConditions ?hasPerformanceConditions }
+      OPTIONAL { ?term epo:hasPlaceOfPerformanceAdditionalInformation ?hasPlaceOfPerformanceAdditionalInformation }
+      OPTIONAL { ?term epo:hasRenewalDescription ?hasRenewalDescription }
+      OPTIONAL { ?term epo:hasReservedExecution ?hasReservedExecution }
+      OPTIONAL { ?term epo:definesContractDuration ?definesContractDuration }
+      OPTIONAL { ?term epo:definesContractPeriod ?definesContractPeriod }
+      OPTIONAL { ?term epo:definesPaymentExecutor ?definesPaymentExecutor }
+      OPTIONAL { ?term epo:definesSubcontractingTerm ?definesSubcontractingTerm }
+      OPTIONAL { ?term epo:hasEInvoicing ?hasEInvoicing }
+      OPTIONAL { ?term epo:hasEOrdering ?hasEOrdering }
+      OPTIONAL { ?term epo:hasEPayment ?hasEPayment }
+      OPTIONAL { ?term epo:hasLegalFormRequirement ?hasLegalFormRequirement }
+      OPTIONAL { ?term epo:hasMaximumNumberOfRenewals ?hasMaximumNumberOfRenewals }
+      OPTIONAL { ?term epo:hasOptions ?hasOptions }
+      OPTIONAL { ?term epo:isRenewalIndicator ?isRenewalIndicator }
     }
-    OPTIONAL {
-        ?procedure epo:foreseesContractSpecificTerm ?term .
-  
-        OPTIONAL { ?term epo:definesSpecificPlaceOfPerformance [
-          locn:address [ locn:fullAddress ?placeOfPerformanceAddress ]
-        ] }
-        OPTIONAL {
-          ?term epo:hasAdditionalContractNature ?hasAdditionalContractNature .
-          SERVICE Service:label {
-            ?hasAdditionalContractNature mplabel:label ?hasAdditionalContractNatureLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
-        }
-        OPTIONAL { 
-          ?term epo:hasBroadPlaceOfPerformance ?hasBroadPlaceOfPerformance 
-          SERVICE Service:label {
-            ?hasBroadPlaceOfPerformance mplabel:label ?hasBroadPlaceOfPerformanceLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }  
-        }
-        OPTIONAL {
-          ?term epo:hasContractNatureType ?hasContractNatureType 
-          SERVICE Service:label {
-            ?hasContractNatureType mplabel:label ?hasContractNatureTypeLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }  
-        }
-        OPTIONAL { ?term epo:hasEInvoicingPermission ?hasEInvoicingPermission }
-        OPTIONAL { ?term epo:hasOptionsDescription ?hasOptionsDescription }
-        OPTIONAL { ?term epo:hasPaymentArrangement ?hasPaymentArrangement }
-        OPTIONAL { ?term epo:hasPerformanceConditions ?hasPerformanceConditions }
-        OPTIONAL { ?term epo:hasPlaceOfPerformanceAdditionalInformation ?hasPlaceOfPerformanceAdditionalInformation }
-        OPTIONAL { ?term epo:hasRenewalDescription ?hasRenewalDescription }
-        OPTIONAL { ?term epo:hasReservedExecution ?hasReservedExecution }
-        OPTIONAL { ?term epo:definesContractDuration ?definesContractDuration }
-        OPTIONAL { ?term epo:definesContractPeriod ?definesContractPeriod }
-        OPTIONAL { ?term epo:definesPaymentExecutor ?definesPaymentExecutor }
-        OPTIONAL { ?term epo:definesSubcontractingTerm ?definesSubcontractingTerm }
-        OPTIONAL { ?term epo:hasEInvoicing ?hasEInvoicing }
-        OPTIONAL { ?term epo:hasEOrdering ?hasEOrdering }
-        OPTIONAL { ?term epo:hasEPayment ?hasEPayment }
-        OPTIONAL { ?term epo:hasLegalFormRequirement ?hasLegalFormRequirement }
-        OPTIONAL { ?term epo:hasMaximumNumberOfRenewals ?hasMaximumNumberOfRenewals }
-        OPTIONAL { ?term epo:hasOptions ?hasOptions }
-        OPTIONAL { ?term epo:isRenewalIndicator ?isRenewalIndicator }
-    }
-  }
-  
     "
     number-of-displayed-rows="6" id="semantic-table-contract-terms" tuple-template='
     <bs-card class="term-card h-100">
@@ -960,8 +987,30 @@
         <bs-card-text>
           <p>{{stType.value}} </p>
           {{> Platform:customTemplateFragments::KeyIriRow key="Contract nature" iri=hasContractNatureType.value label=hasContractNatureTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow key="Additional contract nature" iri=hasAdditionalContractNatureType.value  label=hasAdditionalContractNatureTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Additional contract nature" iri=hasAdditionalContractNature.value  label=hasAdditionalContractNatureLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
           {{#if placeOfPerformanceAddress}}{{> Platform:customTemplateFragments::KeyLongValueRow key="Performance address" value=placeOfPerformanceAddress.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBroadPlaceOfPerformance.value key="Broad place of performance" label=hasBroadPlaceOfPerformanceLabel.value hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasOptionsDescription.value key="Options description" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasPerformanceConditions.value key="Performance conditions" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasPlaceOfPerformanceAdditionalInformation.value key="Place of performance additional information" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasRenewalDescription.value key="Renewal description" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasMaximumNumberOfRenewals.value key="Maximum number of renewals" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasOptions.value key="Options" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasPaymentArrangement.value key="Payment arrangement" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasReservedExecution.value key="Reserved execution" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasLegalFormRequirement.value key="Legal form requirement" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasEInvoicingPermission.value key="E-invoicing permission" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          
+          {{> Platform:customTemplateFragments::KeyIriRowAutoLabel iri=definesPaymentExecutor.value key="Defines payment executor" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRowAutoLabel iri=definesSubcontractingTerm.value key="Defines subcontracting term" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+          {{#if isRenewalIndicator}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=isRenewalIndicator.value key="Is renewal indicator"}}{{/if}}          
+          {{#if hasEInvoicing}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=hasEInvoicing.value key="E-invoicing"}}{{/if}}          
+          {{#if hasEOrdering}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=hasEOrdering.value key="E-ordering"}}{{/if}}          
+          {{#if hasEPayment}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=hasEPayment.value key="E-payment"}}{{/if}}          
+          
+          <!-- TODO -->
+          <!-- value=definesContractDuration.value key="Defines contract duration" -->
+          <!-- value=definesContractPeriod.value key="Defines contract period" -->
         </bs-card-text>
       </bs-card-body>
     </bs-card>
@@ -1212,7 +1261,7 @@
 <!-- params: 
   lot
 -->
-<template-fragment id="tf-lots-and-tenders--framework-agreement-terms">
+<template-fragment id="tf-procurement-object--framework-agreement-terms">
   <semantic-table query="
       PREFIX adms: <http://www.w3.org/ns/adms#> 
       PREFIX dct: <http://purl.org/dc/terms/> 
@@ -1228,7 +1277,7 @@
       
       SELECT 
         ## lot
-        ?lot
+        ?po
         ?termType
         ?termTypeLabel
         ?term
@@ -1242,7 +1291,19 @@
         
       WHERE {
         BIND(?? as ?notice)
-        BIND({{lot}} as ?lot)
+        BIND ({{procurementObject}} as ?po)
+        ?notice ?procurementObjProp ?po .
+        FILTER (?procurementObjProp IN (
+          epo:refersToProcedure,
+          epo:announcesProcedure,
+          epo:refersToLot,
+          epo:announcesLot
+        ))
+        ?po ?poTermProp ?term .
+        FILTER (?poTermProp IN (
+          epo:isSubjectToProcedureSpecificTerm,
+          epo:isSubjectToLotSpecificTerm
+        ))
         BIND(epo:FrameworkAgreementTerm AS ?termType)
         BIND('Framework agreement term' AS ?termTypeLabel)
         ?notice a epo:Notice ;
@@ -1252,7 +1313,7 @@
         ?lot a epo:Lot ;
           epo:isSubjectToLotSpecificTerm ?term .
       
-        ?term a epo:FrameworkAgreementTerm .
+        ?term a ?termType .
         
         OPTIONAL { ?term epo:hasMaximumParticipantsNumber ?hasMaximumParticipantsNumber }
         OPTIONAL { ?term epo:hasDurationExtensionJustification ?hasDurationExtensionJustification }
@@ -1287,9 +1348,9 @@
   </semantic-table>
 </template-fragment>
 <!-- params: 
-  lot
+  procurementObject
 -->
-<template-fragment id="tf-lots-and-tenders--access-terms">
+<template-fragment id="procurement-object--access-terms">
   <semantic-table query="
       PREFIX adms: <http://www.w3.org/ns/adms#> 
       PREFIX dct: <http://purl.org/dc/terms/> 
@@ -1303,18 +1364,13 @@
       PREFIX cccev: <http://data.europa.eu/m8g/> 
       PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
       
-      SELECT 
-      
-        ?lot
+      SELECT DISTINCT
+        ?po
         ?term
-        # ext URL
         ?hasRestrictedAccessURL
         ?hasPublicAccessURL
-        # bool
         ?isProcurementDocumentRestricted
-        # dates
         ?hasAdditionalInformationDeadline
-        # iri
         ?involvesProcurementDocument
         ?definesProcurementProcedureInformationProvider
         ?definesOfflineAccessProvider
@@ -1325,20 +1381,25 @@
         ?definesOfflineAccessProviderLabel
         ?definesCatalogueProviderLabel
         ?definesCatalogueReceiverLabel
-        # long or ext IRI
         ?hasDocumentRestrictionJustification
         # ???
         ?refersToPlannedPart
       WHERE {
-        # BIND(?? as ?notice)
-        BIND({{lot}} as ?lot)
-        # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0001> as ?lot)
-        ?notice a epo:Notice ;
-          epo:refersToProcedure ?procedure .
-        ?procedure a epo:Procedure ;
-          epo:hasProcurementScopeDividedIntoLot ?lot .
-        ?lot a epo:Lot ;
-          epo:isSubjectToLotSpecificTerm ?term .
+        BIND(?? as ?notice)
+        BIND ({{procurementObject}} as ?po)
+        ?notice ?procurementObjProp ?po .
+        FILTER (?procurementObjProp IN (
+          epo:refersToProcedure,
+          epo:announcesProcedure,
+          epo:refersToLot,
+          epo:announcesLot
+        ))
+        ?po ?poTermProp ?term .
+        FILTER (?poTermProp IN (
+          epo:isSubjectToProcedureSpecificTerm,
+          epo:isSubjectToLotSpecificTerm
+        ))
+        # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0001> as ?po)
         ?term a epo:AccessTerm .
         OPTIONAL { ?term epo:isProcurementDocumentRestricted ?isProcurementDocumentRestricted }
         OPTIONAL { ?term epo:hasRestrictedAccessURL ?hasRestrictedAccessURL }
@@ -1965,13 +2026,17 @@
                             </bs-tab>
                           {{/if}}
                           {{#if (cond-eq hasAnyFrameworkAgreementTerm.value "true")}}
-                            <bs-tab event-key="4" title="Framework agreement">
-                              {{> ::tf-lots-and-tenders--framework-agreement-terms}}
-                            </bs-tab>
+                            {{#bind procurementObject=lot}}
+                              <bs-tab event-key="4" title="Framework agreement">
+                                {{> ::tf-procurement-object--framework-agreement-terms}}
+                              </bs-tab>
+                            {{/bind}}
                           {{/if}}
                           {{#if (cond-eq hasAnyAccessTerm.value "true")}}
                             <bs-tab event-key="1" title="Access">
-                              {{> ::tf-lots-and-tenders--access-terms}}
+                              {{#bind procurementObject=lot}}
+                                {{> ::procurement-object--access-terms}}
+                              {{/bind}}
                             </bs-tab>
                           {{/if}}
                           {{#if (cond-eq hasAnyOpeningTerm.value "true")}}
@@ -1992,7 +2057,7 @@
                             </bs-tab>
                           {{/if}}
                         </bs-tabs>
-                      {{#else}}
+                      {{else}}
                       <p><i>No lot specific terms specified.</i></p>
                       {{/if}}
                     </div>
