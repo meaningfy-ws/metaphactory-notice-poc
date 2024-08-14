@@ -511,85 +511,162 @@
   </semantic-query>
 </template-fragment>
 <template-fragment id="tf-procedure-terms-all">
-  <div class="container">
-
-    <div class="row">
-      <div class="term-container">
-        <bs-tabs id="tabs">
-          <bs-tab event-key="1" title="procedure review">
-            {{> ::tf-procedure-review-terms}}
-          </bs-tab>
-          <bs-tab event-key="2" title="direct award">
-            {{> ::tf-procedure-direct-award-terms}}
-          </bs-tab>
-        </bs-tabs>
-      </div>
-    </div>
-  </div>
+  <semantic-query query="
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+    SELECT DISTINCT
+      ?notice
+      ?procedure
+      ?hasAnyProcedureTerm
+      ?hasAnyReviewTerm
+      ?hasAnyDirectAwardTerm
+    WHERE {
+      BIND (?? as ?notice)
+      # BIND (<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Notice> as ?notice)
+      ?notice ?procedureProp ?procedure .
+      ?procedure a epo:Procedure .
+      FILTER (?procedureProp IN (
+      epo:refersToProcedure,
+      epo:announcesProcedure
+      ))
+      BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:ProcedureTerm] .} AS ?hasAnyProcedureTerm)
+      BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:ReviewTerm] .} AS ?hasAnyReviewTerm)
+      BIND(EXISTS {?procedure epo:isSubjectToProcedureSpecificTerm [a epo:DirectAwardTerm] .} AS ?hasAnyDirectAwardTerm)
+    }
+  "
+  template='{{>tpl }}'>
+    <template id='tpl'>
+      {{#each bindings}}
+        <div class="container">
+          <div class="row">
+            <div class="term-container">
+              {{#if 
+                (cond-or 
+                  (cond-eq hasAnyProcedureTerm.value "true")
+                  (cond-eq hasAnyReviewTerm.value "true")
+                  (cond-eq hasAnyDirectAwardTerm.value "true")
+                )
+              }}
+                <bs-tabs id="tabs">
+                  {{#bind procurementObject=procedure}}
+                    {{#if (cond-eq hasAnyProcedureTerm.value "true")}}
+                    <bs-tab event-key="1" title="procedure">
+                      {{> ::tf-procedure-terms}}
+                    </bs-tab>
+                    {{/if}}
+                    {{#if (cond-eq hasAnyReviewTerm.value "true")}}
+                    <bs-tab event-key="2" title="review">
+                      {{> ::tf-procurement-object-review-terms}}
+                    </bs-tab>
+                    {{/if}}
+                    {{#if (cond-eq hasAnyDirectAwardTerm.value "true")}}
+                      <bs-tab event-key="3" title="direct award">
+                        {{> ::tf-procedure-direct-award-terms}}
+                      </bs-tab>
+                    {{/if}}
+                  {{/bind}}
+              </bs-tabs>
+              {{else}}
+              <p><i>No procedure specific terms specified.</i></p>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </template>
+  </semantic-query>
 </template-fragment>
-<template-fragment id="tf-procedure-review-terms">
+<!-- 
+  params:
+    procurementObject
+-->
+<template-fragment id="tf-procurement-object-review-terms">
   <semantic-table query="
-      PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-      PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+    
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX org: <http://www.w3.org/ns/org#> 
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+    
+    SELECT DISTINCT
+      ?term
+      ?termLabel
+      ?termType
+      ?termTypeLabel
       
-      PREFIX cccev: <http://data.europa.eu/m8g/> 
-      PREFIX org: <http://www.w3.org/ns/org#> 
-      PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-
-      PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
-      
-      SELECT ?procTerm ?pstLabel ?procType ?procTypeLabel ?infoProviderOrg ?infoProviderName ?infoProviderId 
-      ?reviewerOrg ?reviewerName ?reviewerId ?deadline ?deadlineInfo ?justification
-      WHERE {
-        BIND (?? as ?notice)
-        ?notice a epo:Notice .
-        ?notice epo:refersToProcedure ?procedure .
-        ?procedure a epo:Procedure .
-        VALUES (?procType ?procTypeLabel ) {
-          (epo:ReviewTerm 'Review term')
-        }
-        ?procedure epo:isSubjectToProcedureSpecificTerm ?procTerm .
-        SERVICE Service:label {
-          ?procTerm mplabel:label ?pstLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
-        OPTIONAL {
-          ?procTerm a epo:ReviewTerm .
-          OPTIONAL {
-            ?procTerm epo:definesReviewProcedureInformationProvider / epo:playedBy ?infoProviderOrg .
-            ?infoProviderOrg a org:Organization ;
-              epo:hasLegalName ?infoProviderName ;
-              epo:hasLegalIdentifier / skos:notation ?infoProviderId .
-          }
-          OPTIONAL {
-            ?procTerm epo:definesReviewer / epo:playedBy ?reviewerOrg .
-            ?reviewerOrg a org:Organization ;
-              epo:hasLegalName ?reviewerName ;
-              epo:hasLegalIdentifier / skos:notation ?reviewerId .
-          }
-          OPTIONAL {
-            ?procTerm epo:hasReviewDeadline ?deadline .
-          }
-          OPTIONAL {
-            ?procTerm epo:hasReviewDeadlineInformation ?deadlineInfo .
-          }
-          OPTIONAL {
-            ?procTerm epo:hasJustification ?justification .
-          }
-        }
+      ?infoProviderOrg
+      ?infoProviderName
+      ?infoProviderId 
+      ?reviewerOrg
+      ?reviewerName
+      ?reviewerId
+      ?deadline
+      ?deadlineInfo
+      ?justification
+      ?hasReviewProcedure
+    WHERE {
+      BIND (?? as ?notice)
+      BIND ({{procurementObject}} as ?po)
+      # BIND (<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Notice> as ?notice)
+      # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0001> as ?po)
+      BIND(epo:ReviewTerm AS ?termType)
+      BIND('Review term' AS ?termTypeLabel)
+      ?notice ?procurementObjProp ?po .
+      FILTER (?procurementObjProp IN (
+        epo:refersToProcedure,
+        epo:announcesProcedure,
+        epo:refersToLot,
+        epo:announcesLot
+      ))
+      ?po ?poTermProp ?term .
+      FILTER (?poTermProp IN (
+        epo:isSubjectToProcedureSpecificTerm,
+        epo:isSubjectToLotSpecificTerm
+      ))
+      ?term a epo:ReviewTerm .
+      SERVICE Service:label {
+        ?term mplabel:label ?termLabel ;
+          mplabel:preferredLanguage ?__userPreferredLanguage__ .
       }
+    
+      OPTIONAL { ?term epo:hasReviewProcedure ?hasReviewProcedure }
+      OPTIONAL {
+        ?term epo:definesReviewProcedureInformationProvider / epo:playedBy ?infoProviderOrg .
+        ?infoProviderOrg a org:Organization ;
+          epo:hasLegalName ?infoProviderName ;
+          epo:hasLegalIdentifier / skos:notation ?infoProviderId .
+      }
+      OPTIONAL {
+        ?term epo:definesReviewer / epo:playedBy ?reviewerOrg .
+        ?reviewerOrg a org:Organization ;
+          epo:hasLegalName ?reviewerName ;
+          epo:hasLegalIdentifier / skos:notation ?reviewerId .
+      }
+      OPTIONAL {
+        ?term epo:hasReviewDeadline ?deadline .
+      }
+      OPTIONAL {
+        ?term epo:hasReviewDeadlineInformation ?deadlineInfo .
+      }
+      OPTIONAL {
+        ?term epo:hasJustification ?justification .
+      }
+    }
     "
     number-of-displayed-rows="6" id="semantic-table-proc-spec-terms" tuple-template='
     <bs-card class="term-card h-100">
       <bs-card-header>
-        {{> Platform:customTemplateFragments::Semlink iri=procType.value}}
+        {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value label=pstLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
           {{#if infoProviderOrg}}{{> Platform:customTemplateFragments::KeyIriRow key="Information provider" iri=infoProviderOrg.value label=(string-of infoProviderName.value " (" infoProviderId.value ")") hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
           {{#if deadlineInfo}}{{> Platform:customTemplateFragments::KeyLongValueRow key="Deadline info" value=deadlineInfo.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+          {{#if deadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Deadline" value=(dateTimeFormat deadline.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
           {{#if justification}}{{> Platform:customTemplateFragments::KeyLongValueRow key="Justification" value=justification.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
         </bs-card-text>
       </bs-card-body>
@@ -618,32 +695,32 @@
         VALUES (?procType ?procTypeLabel ) {
           (epo:DirectAwardTerm 'Direct award term')
         }
-        OPTIONAL {
-          ?procedure epo:isSubjectToProcedureSpecificTerm ?procTerm .
-          ?procTerm a epo:DirectAwardTerm .
-          OPTIONAL {
-            ?procTerm epo:hasDirectAwardJustification ?directJustification .
-            SERVICE Service:label {
-              ?directJustification mplabel:label ?directJustificationLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-            }
-          }
-          OPTIONAL {
-            ?procTerm epo:hasJustification ?justification .
-          }
-          OPTIONAL {
-            ?procTerm epo:refersToPreviousProcedure ?previousProcedure .
-          }
-          OPTIONAL {
-            ?procTerm epo:refersToPreviousProcedureLot ?previousProcedureLot .
-          }
         
-
+        ?procedure epo:isSubjectToProcedureSpecificTerm ?procTerm .
+        ?procTerm a epo:DirectAwardTerm .
+        OPTIONAL {
+          ?procTerm epo:hasDirectAwardJustification ?directJustification .
           SERVICE Service:label {
-            ?procTerm mplabel:label ?pstLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            ?directJustification mplabel:label ?directJustificationLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
           }
         }
+        OPTIONAL {
+          ?procTerm epo:hasJustification ?justification .
+        }
+        OPTIONAL {
+          ?procTerm epo:refersToPreviousProcedure ?previousProcedure .
+        }
+        OPTIONAL {
+          ?procTerm epo:refersToPreviousProcedureLot ?previousProcedureLot .
+        }
+      
+
+        SERVICE Service:label {
+          ?procTerm mplabel:label ?pstLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+        }
+        
       }
     "
     number-of-displayed-rows="6" id="semantic-table-proc-spec-terms" tuple-template='
@@ -658,7 +735,100 @@
           {{> Platform:customTemplateFragments::KeyIriRow key="Direct justification" iri=directJustification.value label=directJustificationLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyLongValueRow key="Justification" value=justification.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyIriRowAutoLabel key="Previous procedure" iri=previousProcedure.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
-          {{> Platform:customTemplateFragments::KeyIriRowAutoLabel key="Previous procedure Lot" iri=previousProcedureLot.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRowAutoLabel key="Previous procedure Lot" iri=previousProcedureLot.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+        </bs-card-text>
+      </bs-card-body>
+    </bs-card>
+    '>
+  </semantic-table>
+</template-fragment>
+<template-fragment id="tf-procedure-terms">
+  <semantic-table query="
+    PREFIX adms: <http://www.w3.org/ns/adms#> 
+    PREFIX dct: <http://purl.org/dc/terms/> 
+    PREFIX org: <http://www.w3.org/ns/org#> 
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+
+    SELECT 
+      ?term
+      ?termLabel
+      ?termType
+      ?termTypeLabel
+
+      ?isSubmissionForAllLotsRequired
+      ?isOneLotOnlyAllowed
+      ?isAwardedByCPB
+      ?hasMaximumLotSubmissionAllowed
+      ?hasLotAwardCombination
+      ?hasMaximumNumberOfLotsToBeAwarded
+      ?definesBudgetProvider  # TODO FIXME multiple values possible
+      ?definesMediator  # TODO FIXME multiple values possible
+      ?definesInformationProvider  # TODO FIXME multiple values possible
+      ?hasGroupLotEvaluationMethod
+      ?hasCrossBorderLaw
+      ?definesLotGroup
+      ?hasNationalProcedureRules
+    WHERE {
+      BIND (?? as ?notice)
+      BIND(epo:ProcedureTerm AS ?termType)
+      BIND('Procedure term' AS ?termTypeLabel)
+      ?notice ?procedureProp ?procedure .
+      ?procedure a epo:Procedure .
+      FILTER (?procedureProp IN (
+        epo:refersToProcedure,
+        epo:announcesProcedure
+      ))
+      ?procedure epo:isSubjectToProcedureSpecificTerm ?term .
+      ?term a ?termType .
+      SERVICE Service:label {
+        ?term mplabel:label ?termLabel ;
+          mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+      OPTIONAL { ?term epo:isSubmissionForAllLotsRequired ?isSubmissionForAllLotsRequired }
+      OPTIONAL { ?term epo:isOneLotOnlyAllowed ?isOneLotOnlyAllowed }
+      OPTIONAL { ?term epo:isAwardedByCPB ?isAwardedByCPB }
+      OPTIONAL { ?term epo:hasMaximumLotSubmissionAllowed ?hasMaximumLotSubmissionAllowed }
+      OPTIONAL { ?term epo:hasLotAwardCombination ?hasLotAwardCombination }
+      OPTIONAL { ?term epo:hasMaximumNumberOfLotsToBeAwarded ?hasMaximumNumberOfLotsToBeAwarded }
+      OPTIONAL { ?term epo:definesBudgetProvider ?definesBudgetProvider }
+      OPTIONAL { ?term epo:definesMediator ?definesMediator }
+      OPTIONAL { ?term epo:definesInformationProvider ?definesInformationProvider }
+      OPTIONAL { ?term epo:hasGroupLotEvaluationMethod ?hasGroupLotEvaluationMethod }
+      OPTIONAL { ?term epo:hasCrossBorderLaw ?hasCrossBorderLaw }
+      OPTIONAL { ?term epo:definesLotGroup ?definesLotGroup }
+      OPTIONAL { ?term epo:hasNationalProcedureRules ?hasNationalProcedureRules }
+    }
+    "
+    number-of-displayed-rows="6" id="semantic-table-proc-terms" tuple-template='
+    <bs-card class="term-card h-100">
+      <bs-card-header>
+        {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
+      </bs-card-header>
+      <bs-card-body class="term-card-body">
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+        <bs-card-text>
+          <p>{{stType.value}} </p>
+          {{> Platform:customTemplateFragments::KeyIriRowAutoLabel iri=definesBudgetProvider.value key="Defines budget provider" key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRowAutoLabel iri=definesMediator.value key="Defines mediator" key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRowAutoLabel iri=definesInformationProvider.value key="Defines information provider" key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasMaximumLotSubmissionAllowed.value key="Maximum lot submission allowed" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasLotAwardCombination.value key="Lot award combination" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasMaximumNumberOfLotsToBeAwarded.value key="Maximum number of lots to be awarded" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasGroupLotEvaluationMethod.value key="Group lot evaluation method" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasCrossBorderLaw.value key="Cross border law" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasNationalProcedureRules.value key="National procedure rules" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          
+          {{#if isSubmissionForAllLotsRequired}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=isSubmissionForAllLotsRequired.value key="Is submission for all lots required" }}{{/if}}
+          {{#if isOneLotOnlyAllowed}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=isOneLotOnlyAllowed.value key="Is one lot only allowed" }}{{/if}}
+          {{#if isAwardedByCPB}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=isAwardedByCPB.value key="Is awarded by CPB" }}{{/if}}
+          
         </bs-card-text>
       </bs-card-body>
     </bs-card>
@@ -1244,6 +1414,144 @@
   </semantic-table>
 </template-fragment>
 <!-- params: 
+  lot
+-->
+<template-fragment id="tf-lots-and-tenders--opening-terms">
+  <semantic-table query="
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+    
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+    PREFIX locn: <http://www.w3.org/ns/locn#>
+    
+    SELECT 
+      ?term
+      ?termLabel
+      ?termType
+      ?termTypeLabel
+      ?hasOpeningDateTime
+      ?hasOpeningURL
+      ?openingPlace
+      ?hasOpeningDescription
+    WHERE {
+      BIND({{lot}} as ?lot)
+      # BIND(<http://data.europa.eu/a4g/resource/id_c4c415ee-ac08-4465-8fa6-57568cf69462_Lot_LOT-0000> as ?lot)
+      BIND(epo:OpeningTerm AS ?termType)
+      BIND('Opening term' AS ?termTypeLabel)
+      ?notice epo:refersToProcedure ?procedure .
+      ?procedure a epo:Procedure ;
+        epo:hasProcurementScopeDividedIntoLot ?lot .
+      ?lot a epo:Lot ;
+        epo:isSubjectToLotSpecificTerm ?term .
+    
+      ?term a ?termType .
+      SERVICE Service:label {
+        ?term mplabel:label ?termLabel ;
+        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+      OPTIONAL { ?term epo:hasOpeningDateTime ?hasOpeningDateTime }
+      OPTIONAL { ?term epo:hasOpeningURL ?hasOpeningURL }
+      OPTIONAL {
+        ?term epo:definesOpeningPlace [locn:fullAddress ?openingPlace ]
+      }
+      OPTIONAL { ?term epo:hasOpeningDescription ?hasOpeningDescription }
+    }
+    "
+    number-of-displayed-rows="6" id="semantic-table" tuple-template='
+    <bs-card class="term-card h-100">
+      <bs-card-header>
+        {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
+      </bs-card-header>
+      <bs-card-body class="term-card-body">
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+        <bs-card-text>
+          <p>{{stType.value}} </p>
+          {{> Platform:customTemplateFragments::KeyValueRow value=openingPlace.value key="Opening place" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasOpeningDescription.value key="Opening description" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyLinkRow iri=hasOpeningURL key="Opening URL"}}
+          {{#if hasOpeningDateTime}}{{> Platform:customTemplateFragments::KeyValueRow key="Opening time" value=(dateTimeFormat hasOpeningDateTime.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+        </bs-card-text>
+      </bs-card-body>
+    </bs-card>
+    '>
+  </semantic-table>
+</template-fragment>
+<!-- params: 
+  lot
+-->
+<template-fragment id="tf-lots-and-tenders--multiple-stage-procedure-terms">
+  <semantic-table query="
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+    
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+    
+    SELECT 
+      ?term
+      ?termLabel
+      ?termType
+      ?termTypeLabel
+      ?hasMaximumNumberOfCandidates
+      ?hasMinimumNumberOfCandidates
+      ?hasQualificationSystemRenewalDescription
+      ?hasEstimatedInvitationToTenderDate
+      ?hasEstimatedInvitationToExpressInterestDate
+      ?hasSuccessiveReduction
+      ?hasNoNegotiationNecessary
+      ?hasQualificationSystemDuration
+    
+    WHERE {
+      BIND({{lot}} as ?lot)
+      # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0001> as ?lot)
+      BIND(epo:MultipleStageProcedureTerm AS ?termType)
+      BIND('Multiple stage procedure term' AS ?termTypeLabel)
+      ?notice epo:refersToProcedure ?procedure .
+      ?procedure a epo:Procedure ;
+        epo:hasProcurementScopeDividedIntoLot ?lot .
+      ?lot a epo:Lot ;
+        epo:isSubjectToLotSpecificTerm ?term .
+    
+      ?term a ?termType .
+      SERVICE Service:label {
+        ?term mplabel:label ?termLabel ;
+        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+      OPTIONAL { ?term epo:hasMaximumNumberOfCandidates ?hasMaximumNumberOfCandidates }
+      OPTIONAL { ?term epo:hasSuccessiveReduction ?hasSuccessiveReduction }
+      OPTIONAL { ?term epo:hasMinimumNumberOfCandidates ?hasMinimumNumberOfCandidates }
+      OPTIONAL { ?term epo:hasEstimatedInvitationToTenderDate ?hasEstimatedInvitationToTenderDate }
+      OPTIONAL { ?term epo:hasNoNegotiationNecessary ?hasNoNegotiationNecessary }
+      OPTIONAL { ?term epo:hasEstimatedInvitationToExpressInterestDate ?hasEstimatedInvitationToExpressInterestDate }
+      OPTIONAL { ?term epo:hasQualificationSystemRenewalDescription ?hasQualificationSystemRenewalDescription }
+      OPTIONAL { ?term epo:hasQualificationSystemDuration ?hasQualificationSystemDuration }
+    }
+    "
+    number-of-displayed-rows="6" id="semantic-table" tuple-template='
+    <bs-card class="term-card h-100">
+      <bs-card-header>
+        {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
+      </bs-card-header>
+      <bs-card-body class="term-card-body">
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+        <bs-card-text>
+          <p>{{stType.value}} </p>
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasQualificationSystemRenewalDescription.value key="Qualification system renewal description" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasMinimumNumberOfCandidates.value key="Minimum number of candidates" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasMaximumNumberOfCandidates.value key="Maximum number of candidates" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{#if hasOpeningDateTime}}{{> Platform:customTemplateFragments::KeyValueRow key="Estimated invitation to express interest date" value=(dateTimeFormat hasEstimatedInvitationToExpressInterestDate.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+          {{#if hasOpeningDateTime}}{{> Platform:customTemplateFragments::KeyValueRow key="Estimated invitation to tender date" value=(dateTimeFormat hasEstimatedInvitationToTenderDate.value "YYYY-MM-DD H:mm:ss Z") key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
+          {{#if hasNoNegotiationNecessary}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=hasNoNegotiationNecessary.value key="No negotiation necessary" }}{{/if}}
+          {{#if hasSuccessiveReduction}}{{> Platform:customTemplateFragments::KeyBoolValueRow value=hasSuccessiveReduction.value key="Successive reduction" }}{{/if}}
+
+          <!-- hasQualificationSystemDuration.value key="Qualification system duration" -->
+
+        </bs-card-text>
+      </bs-card-body>
+    </bs-card>
+    '>
+  </semantic-table>
+</template-fragment>
+<!-- params: 
   tender
 -->
 <template-fragment id="tf-lots-and-tenders--winner">
@@ -1349,6 +1657,15 @@
     ## lot
     ?lot
     ?lotId
+
+    ?hasAnySubmissionTerm
+    ?hasAnySecurityClearanceTerm
+    ?hasAnyFrameworkAgreementTerm
+    ?hasAnyAccessTerm
+    ?hasAnyOpeningTerm
+    ?hasAnyMultipleStageProcedureTerm
+    ?hasAnyReviewTerm
+
     ?lotTitle
     ?lotDescription
     ?lotPurposeCode  # EXT
@@ -1417,7 +1734,14 @@
     ?procedure a epo:Procedure ;
       epo:hasProcurementScopeDividedIntoLot ?lot .
     ?lot a epo:Lot .
-  
+    
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:SubmissionTerm] .} AS ?hasAnySubmissionTerm)
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:SecurityClearanceTerm] .} AS ?hasAnySecurityClearanceTerm)
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:FrameworkAgreementTerm] .} AS ?hasAnyFrameworkAgreementTerm)
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:AccessTerm] .} AS ?hasAnyAccessTerm)
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:OpeningTerm] .} AS ?hasAnyOpeningTerm)
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:MultipleStageProcedureTerm] .} AS ?hasAnyMultipleStageProcedureTerm)
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:ReviewTerm] .} AS ?hasAnyReviewTerm)
     OPTIONAL {
       ?lot epo:hasAdditionalInformation ?lotAdditionalInformation .
     }
@@ -1617,20 +1941,60 @@
                   <p class="inner-title">Lot terms</p>
                   <div class="row">
                     <div class="term-container">
-                      <bs-tabs id="tabs">
-                        <bs-tab event-key="2" title="Submission">
-                          {{> ::tf-lots-and-tenders--submission-terms}}
-                        </bs-tab>
-                        <bs-tab event-key="3" title="Security clearance">
-                          {{> ::tf-lots-and-tenders--security-clearance-terms}}
-                        </bs-tab>
-                        <bs-tab event-key="4" title="Framework agreement">
-                          {{> ::tf-lots-and-tenders--framework-agreement-terms}}
-                        </bs-tab>
-                        <bs-tab event-key="1" title="Access">
-                          {{> ::tf-lots-and-tenders--access-terms}}
-                        </bs-tab>
-                      </bs-tabs>
+                      {{#if 
+                        (
+                          cond-or
+                          (cond-eq hasAnySubmissionTerm.value "true")
+                          (cond-eq hasAnySecurityClearanceTerm.value "true")
+                          (cond-eq hasAnyFrameworkAgreementTerm.value "true")
+                          (cond-eq hasAnyAccessTerm.value "true")
+                          (cond-eq hasAnyOpeningTerm.value "true")
+                          (cond-eq hasAnyMultipleStageProcedureTerm.value "true")
+                          (cond-eq hasAnyReviewTerm.value "true")
+                        )
+                      }}
+                        <bs-tabs id="tabs">
+                          {{#if (cond-eq hasAnySubmissionTerm.value "true")}}
+                            <bs-tab event-key="2" title="Submission">
+                              {{> ::tf-lots-and-tenders--submission-terms}}
+                            </bs-tab>
+                          {{/if}}
+                          {{#if (cond-eq hasAnySecurityClearanceTerm.value "true")}}
+                            <bs-tab event-key="3" title="Security clearance">
+                              {{> ::tf-lots-and-tenders--security-clearance-terms}}
+                            </bs-tab>
+                          {{/if}}
+                          {{#if (cond-eq hasAnyFrameworkAgreementTerm.value "true")}}
+                            <bs-tab event-key="4" title="Framework agreement">
+                              {{> ::tf-lots-and-tenders--framework-agreement-terms}}
+                            </bs-tab>
+                          {{/if}}
+                          {{#if (cond-eq hasAnyAccessTerm.value "true")}}
+                            <bs-tab event-key="1" title="Access">
+                              {{> ::tf-lots-and-tenders--access-terms}}
+                            </bs-tab>
+                          {{/if}}
+                          {{#if (cond-eq hasAnyOpeningTerm.value "true")}}
+                            <bs-tab event-key="5" title="Opening">
+                              {{> ::tf-lots-and-tenders--opening-terms}}
+                            </bs-tab>
+                          {{/if}}
+                          {{#if (cond-eq hasAnyMultipleStageProcedureTerm.value "true")}}
+                            <bs-tab event-key="6" title="Multiple stage procedure">
+                              {{> ::tf-lots-and-tenders--multiple-stage-procedure-terms}}
+                            </bs-tab>
+                          {{/if}}
+                          {{#if (cond-eq hasAnyReviewTerm.value "true")}}
+                            <bs-tab event-key="7" title="Review">
+                              {{#bind procurementObject=lot}}
+                                {{> ::tf-procurement-object-review-terms}}
+                              {{/bind}}
+                            </bs-tab>
+                          {{/if}}
+                        </bs-tabs>
+                      {{#else}}
+                      <p><i>No lot specific terms specified.</i></p>
+                      {{/if}}
                     </div>
                   </div>
                 </div>
