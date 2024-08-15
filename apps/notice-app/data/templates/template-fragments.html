@@ -173,6 +173,7 @@
         iri: IRI to be transformed into URL within the app domain
         label: text for the displayed hyperlink
         hide-if-undef: optional; true or false
+        show-kp: If enabled, then icon allowing to display Knowledge Panel will be added
 -->
 <template-fragment export id='KeyIriRow'>
     {{#if iri}}
@@ -190,7 +191,12 @@
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
             <!-- <p><semantic-link iri="{{iri}}">{{label}}</semantic-link></p> -->
-            <p class="kv-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
+            {{log show-kp}}
+            {{#if show-kp}}
+                {{> Platform:customTemplateFragments::IriWithKnowledgePanelView}}
+            {{else}}
+                <p class="kv-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
+            {{/if}}
         </bs-col>
     </bs-row>
 </template-fragment>
@@ -348,4 +354,57 @@
             <p class="kv-value-label" style="display: inline;">{{> Platform:customTemplateFragments::FetchLanguagesInline}}</p>
         </bs-col>
     </bs-row>
+</template-fragment>
+
+<!-- 
+    params:
+        iri:
+        label: optional
+-->
+<template-fragment export id="IriWithKnowledgePanelView">
+    <div style="display: inline !important">
+    {{> Platform:customTemplateFragments::Semlink}}
+    <mp-popover> 
+        <mp-popover-trigger placement='bottom' trigger='["click"]' >
+          <a><span class="material-symbols-outlined" style="color: rgb(177, 177, 179); padding-left: 3px; ">info</span></a>
+        </mp-popover-trigger>
+        <mp-popover-content>
+          <div style='background: #fff; color: #333; margin: -9px -14px; padding: 9px 14px; overflow: auto; width: 400px;'>
+            <style>.popover { max-width: 404px }</style>
+            <mp-knowledge-panel iri='{{iri}}'></mp-knowledge-panel>
+          </div>
+        </mp-popover-content>
+      </mp-popover>  
+    </div>
+</template-fragment>
+
+<!-- 
+params:
+    iri
+-->
+<template-fragment export id="TermDefinitionTooltippedIcon">
+    <semantic-query id="semantic-query-term-def"
+    query="
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        SELECT ?prop ?tooltip
+        WHERE {
+        BIND({{iri}} AS ?prop) .
+        ?prop skos:prefLabel ?label .
+        OPTIONAL { ?prop skos:definition ?definition }
+        BIND(COALESCE(?definition, ?label) AS ?tooltip)
+        }
+    "
+    template='{{>tpl }}'>
+        <template id='tpl'>
+            {{#each bindings}}
+                <span 
+                    class="material-symbols-outlined" 
+                    style="color: rgb(177, 177, 179); padding-left: 3px; font-size: 0.9em; vertical-align: -0.2em; display: inline !important"
+                    title="{{tooltip.value}}"
+                >help</span>
+            {{/each}}
+        </template>
+    </semantic-query>
 </template-fragment>
