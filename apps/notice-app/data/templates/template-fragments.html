@@ -314,13 +314,15 @@
 </template-fragment>
 
 <!-- 
-  Displays comma-separated list of fetched languages for the given resource.
+  Displays comma-separated list of fetched properties for the given resource.
 
   params:
     resource: IRI of the resource to be used as a subject in a BGP 
+    propertyPath: property or property path
 -->
-<template-fragment export id="FetchLanguagesInline">
-    <semantic-query id="has-languages" query='
+<template-fragment export id="FetchMultipleValuesInline">
+    {{log "FetchMultipleValuesInline" resource propertyPath}}
+    <semantic-query id="multiple-vals-inline" query='
         PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
         PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
         
@@ -330,7 +332,7 @@
         WHERE {
             # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_SubmissionTerm_TT87XZ7rfCixVuS4Z9trMH> as ?resource)                  
             # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_SubmissionTerm_TT87XZ7rfCixVuS4Z9trMH> as ?resource)                  
-            {{resource}} epo:hasLanguage ?resource 
+            {{resource}} {{propertyPath}} ?resource 
             SERVICE Service:label {
             ?resource mplabel:label ?label ;
             mplabel:preferredLanguage ?__userPreferredLanguage__ .
@@ -341,17 +343,83 @@
 </template-fragment>
 
 <!-- 
+  Displays Key-value of fetched properties for the given resource.
+
+  Knowledge panel will be enabled for EPO terms.
+
+  params:
+    iri: IRI of the resource to be used as a subject in a BGP 
+    excludedProps: CURIes of properties to exclude (comma-separated list)
+-->
+<template-fragment export id="FetchResourceProperties">
+    {{log "FetchResourceProperties" iri excludedProps}}
+    <semantic-query id="kv-vals" query='
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX locn: <http://www.w3.org/ns/locn#> 
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX dct: <http://purl.org/dc/terms/>
+    
+    
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+    
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+    
+    SELECT 
+        ?property
+        ?propertyLabel
+        ?value
+        ?valueLabel
+        ?isEpoTerm
+    WHERE {
+        #  BIND(<http://data.europa.eu/a4g/resource/id_2022-S-131-374866_Lot_P8CuD8GqVLWXSaTLMofydw> AS ?lot)
+        #BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0002> AS ?lot)
+        # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_AwardCriterion_Ee3JXqpmik8eG35Uay4dJk> as ?criterion)
+        BIND({{iri}} AS ?resource)
+        ?resource ?property ?value .
+        # FILTER(?property NOT IN (skos:prefLabel, dct:description))
+        FILTER(?property NOT IN ({{excludedProps}}))
+        ?property skos:prefLabel ?propertyLabel .
+        BIND((STRSTARTS(STR(?value), "http://data.europa.eu/a4g/")) AS ?isEpoTerm)
+        OPTIONAL {
+            FILTER(isIRI(?value))
+            SERVICE Service:label {
+                ?value mplabel:label ?valueLabel ;
+                mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            }
+        }
+    }
+    ORDER BY ?propertyLabel
+    ' template='{{>tpl }}'>
+        <template id='tpl'>
+          {{#each bindings}}
+            {{log property propertyLabel value valueLabel }}
+            {{#if valueLabel.value}}
+                {{#bind shouldEnableKp=(cond-eq isEpoTerm.value "true")}}
+                    {{log propertyLabel valueLabel shouldEnableKp}}
+                    {{> Platform:customTemplateFragments::KeyIriRow show-kp=shouldEnableKp key=propertyLabel.value iri=value.value label=valueLabel.value hide-if-undef=true}}
+                {{/bind}}
+            {{else}}
+                {{> Platform:customTemplateFragments::KeyValueRow key=propertyLabel.value value=value.value hide-if-undef=true}}
+            {{/if}}
+          {{/each}}
+        </template>
+    </semantic-query>
+</template-fragment>
+
+<!-- 
     params:
         key:
         resource:
 -->
-<template-fragment export id="KeyFetchedLangsRow">
+<template-fragment export id="KeyFetchedValuesRow">
     <bs-row>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
             <p class="kv-key-label">{{key}}</p>
         </bs-col>
         <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
-            <p class="kv-value-label" style="display: inline;">{{> Platform:customTemplateFragments::FetchLanguagesInline}}</p>
+            <p class="kv-value-label" style="display: inline;">{{> Platform:customTemplateFragments::FetchMultipleValuesInline}}</p>
         </bs-col>
     </bs-row>
 </template-fragment>
