@@ -138,6 +138,8 @@
       ?accessURL
       ?electronicDigest
       ?electronicSignature
+      ?hasNoticeType
+      ?hasFormType
       
   WHERE {
       BIND (?? as ?notice)
@@ -165,6 +167,8 @@
       OPTIONAL { ?notice epo:refersToNotice ?otherNotice }
       OPTIONAL { ?notice dct:title ?title }
       OPTIONAL { ?notice epo:hasEFormsSubtype ?eFormsSubtype }
+      OPTIONAL { ?notice epo:hasNoticeType ?hasNoticeType }
+      OPTIONAL { ?notice epo:hasFormType ?hasFormType }
       OPTIONAL { ?notice epo:hasFormNumber ?formNumber }
       OPTIONAL { ?notice dct:issued ?issued }
       OPTIONAL { ?notice epo:hasReceptionDate ?receptionDate }
@@ -512,6 +516,7 @@
       ?usesTechnique
       ?SubjectToTerm
       ?fulfillsStrategicProcurement
+      ?hasStrategicProcurement
   WHERE {
       BIND (?? as ?notice)
       ?notice ?procedureProp ?procedure .
@@ -575,6 +580,7 @@
       OPTIONAL { ?procedure epo:foreseesConcession ?concession }
       OPTIONAL { ?procedure epo:hasLaunchFrameworkAgreementMaximumValue ?launchFrameworkAgreementMaximumValue }
       OPTIONAL { ?procedure epo:hasLegalBasisDescription ?legalBasisDescription }
+      BIND(EXISTS { ?procedure epo:fulfillsStrategicProcurement [ epo:fulfillsRequirement ?strategicProcurement ] } AS ?hasStrategicProcurement)
       OPTIONAL {
         ?procedure epo:hasLegalBasis ?legalBasis
         SERVICE Service:label {
@@ -611,28 +617,30 @@
             <bs-accordion-collapse event-key="expand">
               <bs-card-body>
                 
-                  {{> Platform:customTemplateFragments::KeyValueRow key="designContest" value=designContest.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="executedByProcurementServiceProvider" value=executedByProcurementServiceProvider.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="jointProcurement" value=jointProcurement.value }}
-                  {{> Platform:customTemplateFragments::KeyBoolValueRow key="accelerated" value=accelerated.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="specifiesProcurementCriteriaSummary" value=specifiesProcurementCriteriaSummary.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="responsibilityOfBuyer" value=responsibilityOfBuyer.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="involvesBuyer" value=involvesBuyer.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="acceleratedProcedureJustification" value=acceleratedProcedureJustification.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="usesChanne" value=usesChanne.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="isSMESuitable" value=isSMESuitable.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="isUsingEUFunds" value=isUsingEUFunds.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="isCoveredByGPA" value=isCoveredByGPA.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="isRecurrent" value=isRecurrent.value }}
-                  {{> Platform:customTemplateFragments::KeyLongValueRow key="recurrenceDescription" value=recurrenceDescription.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="concession" value=concession.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="launchFrameworkAgreementMaximumValue" value=launchFrameworkAgreementMaximumValue.value }}
-                  {{> Platform:customTemplateFragments::KeyLongValueRow key="legalBasisDescription" value=legalBasisDescription.value }}
-                  {{> Platform:customTemplateFragments::KeyIriRow key="legalBasis" iri=legalBasis.value label=legalBasisLabel.value hide-if-undef=true}}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="usesTechnique" value=usesTechnique.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="SubjectToTerm" value=SubjectToTerm.value }}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="fulfillsStrategicProcurement" value=fulfillsStrategicProcurement.value }}
-                
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Design contest" value=designContest.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Executed by procurement service provider" value=executedByProcurementServiceProvider.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Joint procurement" value=jointProcurement.value }}
+                  {{> Platform:customTemplateFragments::KeyBoolValueRow key="Accelerated" value=accelerated.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Specifies procurement criteria summary" value=specifiesProcurementCriteriaSummary.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Responsibility of buyer" value=responsibilityOfBuyer.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Involves buyer" value=involvesBuyer.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Accelerated procedure justification" value=acceleratedProcedureJustification.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Uses channel" value=usesChanne.value }}
+                  {{> Platform:customTemplateFragments::KeyLongValueRow key="Recurrence description" value=recurrenceDescription.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Concession" value=concession.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Launch framework agreement maximum value" value=launchFrameworkAgreementMaximumValue.value }}
+                  {{> Platform:customTemplateFragments::KeyLongValueRow key="Legal basis description" value=legalBasisDescription.value }}
+                  {{> Platform:customTemplateFragments::KeyIriRow key="Legal basis" iri=legalBasis.value label=legalBasisLabel.value hide-if-undef=true}}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Uses technique" value=usesTechnique.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Subject to term" value=SubjectToTerm.value }}
+                  {{> Platform:customTemplateFragments::KeyValueRow key="Fulfills strategic procurement" value=fulfillsStrategicProcurement.value }}
+                  
+                  {{#if (cond-eq hasStrategicProcurement.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedValuesRow key="Fulfills strategic procurement" resource=procedure propertyPath="epo:fulfillsStrategicProcurement / epo:fulfillsRequirement"}}{{/if}}
+
+                  {{#if isUsingEUFunds}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is using EU funds" value=isUsingEUFunds.value }}{{/if}}
+                  {{#if isSMESuitable}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is SME suitable" value=isSMESuitable.value }}{{/if}}
+                  {{#if isCoveredByGPA}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is covered by GPA" value=isCoveredByGPA.value }}{{/if}}
+                  {{#if isRecurrent}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is recurrent" value=isRecurrent.value }}{{/if}}
               </bs-card-body>
             </bs-accordion-collapse>
           </bs-card>
@@ -1387,7 +1395,12 @@
           {{> Platform:customTemplateFragments::KeyIriRow key="Tender receiver" show-kp=true  iri=definesTenderReceiver.value label=definesTenderReceiver.value show-kp=true }}
           {{> Platform:customTemplateFragments::KeyIriRow key="Tender processor" show-kp=true iri=definesTenderProcessor.value label=definesTenderProcessor.value show-kp=true }}
         
-          {{#if (cond-eq hasLang.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedLangsRow key="Languages" resource=term }}{{/if}}
+          {{#if (cond-eq hasLang.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedValuesRow key="Languages" resource=term propertyPath="epo:hasLanguage"}}{{/if}}
+        </bs-card-text>
+      </bs-card-body>
+    </bs-card>
+    '>
+  </semantic-table>
         </bs-card-text>
       </bs-card-body>
     </bs-card>
