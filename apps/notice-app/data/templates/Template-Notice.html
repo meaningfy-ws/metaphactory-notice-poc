@@ -1368,7 +1368,7 @@
       <bs-card-body class="term-card-body">
         <bs-card-text>
           <p>{{stType.value}} </p>
-          {{> Platform:customTemplateFragments::KeyLinkRow key="submission URL" iri=?hasSubmissionURL}}
+          {{> Platform:customTemplateFragments::KeyLinkRow key="submission URL" iri=hasSubmissionURL}}
           {{> Platform:customTemplateFragments::KeyValueRow key="Guarantee description" value=hasGuaranteeDescription.value }}
           {{> Platform:customTemplateFragments::KeyValueRow key="Tender subcontracting information" value=hasTenderSubcontractingInformation.value }}
           {{#if isMultipleTenderSubmissionAllowed}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is multiple tender submission allowed" value=isMultipleTenderSubmissionAllowed.value }}{{/if}}
@@ -1401,6 +1401,53 @@
     </bs-card>
     '>
   </semantic-table>
+</template-fragment>
+<!-- params: 
+  lot
+-->
+<template-fragment id="tf-lots-and-tenders--criteria">
+  <semantic-table query="
+  PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+PREFIX locn: <http://www.w3.org/ns/locn#> 
+PREFIX cccev: <http://data.europa.eu/m8g/> 
+PREFIX dct: <http://purl.org/dc/terms/>
+
+PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+  
+  SELECT 
+    ?criterion
+	?criterionType
+	?criterionTypeLabel
+    ?criterionLabel
+    ?description
+  WHERE {
+    BIND({{lot}} AS ?lot)
+    ?lot epo:specifiesProcurementCriterion ?criterion .
+    OPTIONAL { ?criterion ?descriptionProp ?description }
+    FILTER(?descriptionProp in (
+        cccev:description,
+        dct:description,
+        epo:hasDescription
+    )) .
+    
+    ?criterion a ?criterionType .
+  	?criterion skos:prefLabel ?criterionLabel .
+    ?criterionType skos:prefLabel ?criterionTypeLabel .
+  }
+    "
+    number-of-displayed-rows="6" id="semantic-table-criterion" 
+    options='{"showFilter": false}'
+    tuple-template='
+    <bs-card class="term-card h-100">
+      <bs-card-header>
+        {{> Platform:customTemplateFragments::Semlink iri=criterion.value label=criterionLabel.value}}
+        <h6>{{> Platform:customTemplateFragments::Semlink iri=criterionType.value label=criterionTypeLabel.value}}</h6>
+      </bs-card-header>
+      <bs-card-body class="term-card-body">
+        <bs-card-text>
+          {{log "FetchResourceProperties" criterion "skos:prefLabel, dct:description"}}
+          {{> Platform:customTemplateFragments::FetchResourceProperties iri=criterion excludedProps="skos:prefLabel, dct:description"}}
         </bs-card-text>
       </bs-card-body>
     </bs-card>
@@ -1951,7 +1998,6 @@
     ?lotAdditionalInformation
     ?pCriterion
     ?pCriterionLabel
-    # ?term  # TODO move lot terms to dedicated component
     ?lotAwardOutcomeValue
     ?lotAwardOutcomeCurrency
     ?awardCriterion
@@ -1970,12 +2016,12 @@
     ?recurrenceDescription
     ?lotConcession
     ?launchFrameworkAgreementMaximumValue
-    # ?lotContractSpecificTerm # TODO move
     ?legalBasisDescription
     ?legalBasis
+    ?legalBasisLabel
     ?usesTechnique
     ?SubjectToTerm
-    # (GROUP_CONCAT(distinct str(?strategicProcurementLabel); SEPARATOR=', ') as ?strategicProcurements)
+    ?hasStrategicProcurement
     
     ## tender
     ?tender
@@ -2006,6 +2052,10 @@
     ?foreseesSubcontracting
     ?hasSubcontracting
     ?hasItemCountryOfOrigin
+    ?hasPurpose
+    ?hasMainClassification
+    ?hasAdditionalClassification
+    ?hasAnyCriterion
   WHERE {
     BIND (?? as ?notice)
     ?notice ?procedureProp ?procedure .
@@ -2021,15 +2071,17 @@
     BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:OpeningTerm] .} AS ?hasAnyOpeningTerm)
     BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:MultipleStageProcedureTerm] .} AS ?hasAnyMultipleStageProcedureTerm)
     BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:ReviewTerm] .} AS ?hasAnyReviewTerm)
+    BIND(EXISTS {?lot epo:isSubjectToLotSpecificTerm [a epo:ReviewTerm] .} AS ?hasAnyReviewTerm)
+    BIND(EXISTS { ?lot epo:hasPurpose / epo:hasMainClassification	?_  } AS ?hasMainClassification)
+    BIND(EXISTS { ?lot epo:hasPurpose / epo:hasAdditionalClassification	?_  } AS ?hasAdditionalClassification)
+    BIND(EXISTS { ?lot epo:specifiesProcurementCriterion ?_  } AS ?hasAnyCriterion)
+    OPTIONAL { ?lot epo:hasPurpose ?hasPurpose }
     OPTIONAL {
       ?lot epo:hasAdditionalInformation ?lotAdditionalInformation .
     }
     OPTIONAL {
       ?lot epo:specifiesAwardCriterion [ dct:description ?awardCriterion ]
     }
-    # TODO 0..* add support
-    # OPTIONAL { ?lot epo:hasPurpose / epo:hasAdditionalClassification	?lotPurposeCode  }
-    # TODO Foresees contract specific term / contractTErm
     
     BIND(?lot AS ?defaultLotId)
     OPTIONAL { ?lot epo:hasID [epo:hasIdentifierValue ?lotIdentifierValue ] . }
@@ -2058,7 +2110,7 @@
               dct:description,
               epo:hasDescription
           )) .
-        }
+        }        
         OPTIONAL { ?tender epo:hasPublicationDate ?hasPublicationDate }
         OPTIONAL { ?tender epo:hasReceptionDate ?hasReceptionDate }
         OPTIONAL { ?tender epo:hasDispatchDate ?hasDispatchDate }
@@ -2134,26 +2186,23 @@
     # TODO move 
     # OPTIONAL { ?lot epo:foreseesContractSpecificTerm ?lotContractSpecificTerm }
     OPTIONAL { ?lot epo:hasLegalBasisDescription ?legalBasisDescription }
-    OPTIONAL { ?lot epo:hasLegalBasis ?legalBasis }
+    OPTIONAL { 
+      ?lot epo:hasLegalBasis ?legalBasis
+      SERVICE Service:label {
+          ?legalBasis mplabel:label ?legalBasisLabel ;
+          mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+    }
     OPTIONAL { ?lot epo:usesTechnique [dct:description ?usesTechnique ] }
     OPTIONAL { ?lot epo:isSubjectToTerm ?SubjectToTerm }
-    # TODO uncomment and add support
-    # OPTIONAL {
-    #   ?lot epo:fulfillsStrategicProcurement [ epo:fulfillsRequirement ?strategicProcurement ]
-    #   SERVICE Service:label {
-    #         ?strategicProcurement mplabel:label ?strategicProcurementLabel ;
-    #         mplabel:preferredLanguage ?__userPreferredLanguage__ .
-    #     }
-    # }
-  
+    BIND(EXISTS { ?lot epo:fulfillsStrategicProcurement [ epo:fulfillsRequirement ?strategicProcurement ] } AS ?hasStrategicProcurement)
+    
     # lot
     OPTIONAL { 
     ?lot epo:specifiesProcurementCriterion ?pCriterion ;
         a epo:ProcurementCriterion ; 
         skos:prefLabel ?pCriterionLabel .
     }
-    # TODO move lot terms to dedicated component
-    # OPTIONAL { ?lot epo:isSubjectToLotSpecificTerm ?term }
   }
   
     "
@@ -2188,24 +2237,93 @@
               <bs-row>
                 <bs-col sm=6 id="lot-details" class="side-by-side-box">
                   <p class="inner-title">Lot <b><i>{{> Platform:customTemplateFragments::Semlink iri=lot.value }}</i></b> details</p>
-                  <!-- {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=lotId.value }} -->
-                  {{> Platform:customTemplateFragments::KeyValueRow key="title" value=lotTitle.value }}
-                  {{> Platform:customTemplateFragments::KeyLongValueRow key="description" value=lotDescription.value }}
-                  {{> Platform:customTemplateFragments::KeyMoneyRow key="Award outcome value" value=lotAwardOutcomeValue.value currency=lotAwardOutcomeCurrencyLabel.value }}
-                  {{> Platform:customTemplateFragments::KeyMoneyRow key="Restated value" value=lotAwardOutcomeValue.value currency=lotAwardOutcomeCurrencyLabel.value }}
-                  {{> Platform:customTemplateFragments::KeyMoneyRow key="Estimated value" value=lotRestatedEstValue.value currency=lotRestatedEstValCurrencyLabel.value }}
-                  {{#if additionalInformation}}{{> Platform:customTemplateFragments::KeyLongValueCols key="Additional information" key-sm-offset="0" key-sm="2" val-sm-offset="0" val-sm="3" value=additionalInformation.value }}{{/if}}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="Channel" value=channel.value }}
-                  {{#if isSMESuitable}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is SME suitable" value=isSMESuitable.value }}{{/if}}
-                  {{#if isUsingEUFunds}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is using EU funds" value=isUsingEUFunds.value }}{{/if}}
-                  {{#if isCoveredByGPA}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is covered by GPA" value=isCoveredByGPA.value }}{{/if}}
-                  {{> Platform:customTemplateFragments::KeyValueRow key="usesTechnique" value=usesTechnique.value }}
+                  {{#bind key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true }}
+                    {{> Platform:customTemplateFragments::KeyValueRow key="title" value=lotTitle.value }}
+                    {{> Platform:customTemplateFragments::KeyLongValueRow key="description" value=lotDescription.value }}
+                    {{> Platform:customTemplateFragments::KeyMoneyRow key="Award outcome value" value=lotAwardOutcomeValue.value currency=lotAwardOutcomeCurrencyLabel.value }}
+                    {{> Platform:customTemplateFragments::KeyMoneyRow key="Restated value" value=lotAwardOutcomeValue.value currency=lotAwardOutcomeCurrencyLabel.value }}
+                    {{> Platform:customTemplateFragments::KeyMoneyRow key="Estimated value" value=lotRestatedEstValue.value currency=lotRestatedEstValCurrencyLabel.value }}
+                    {{#if additionalInformation}}{{> Platform:customTemplateFragments::KeyLongValueCols key="Additional information" key-sm-offset="0" key-sm="2" val-sm-offset="0" val-sm="3" value=additionalInformation.value }}{{/if}}
+                    
+                    {{#if (
+                      cond-or
+                        (cond-eq hasMainClassification.value "true")
+                        (cond-eq hasAdditionalClassification.value "true")
+                      )
+                    }}
+                      <h6>Purpose</h6>
+                      {{#if (cond-eq hasAdditionalClassification.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedValuesRow key="Additional classification" resource=hasPurpose propertyPath="epo:hasAdditionalClassification"}}{{/if}}
+                      {{#if (cond-eq hasMainClassification.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedValuesRow key="Main classification" resource=hasPurpose propertyPath="epo:hasMainClassification"}}{{/if}}
+                    {{/if}}
+                    
+                    <bs-accordion class="wide-card">
+                      <!-- <bs-accordion default-active-key="expand"> -->
+                        <bs-card>
+                          <bs-card-header>
+                            Additional information
+                            <bs-accordion-toggle event-key="expand" class="btn btn-link">
+                              expand
+                            </bs-accordion-toggle>
+                          </bs-card-header>
+                          <bs-accordion-collapse event-key="expand">
+                            <bs-card-body>
+                              
+                              {{#if isUsingEUFunds}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is using EU funds" value=isUsingEUFunds.value }}{{/if}}
+                              {{#if isSMESuitable}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is SME suitable" value=isSMESuitable.value }}{{/if}}
+                              {{#if isCoveredByGPA}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is covered by GPA" value=isCoveredByGPA.value }}{{/if}}
+                              {{#if isRecurrent}}{{> Platform:customTemplateFragments::KeyBoolValueRow key="Is recurrent" value=isRecurrent.value }}{{/if}}
+                              {{> Platform:customTemplateFragments::KeyValueRow key="Channel" value=channel.value }}
+                              {{> Platform:customTemplateFragments::KeyValueRow key="Uses technique" value=usesTechnique.value }}
+                              {{> Platform:customTemplateFragments::KeyLongValueRow key="Recurrence description" value=recurrenceDescription.value }}
+                              {{> Platform:customTemplateFragments::KeyValueRow key="Concession" value=concession.value }}
+                              {{> Platform:customTemplateFragments::KeyValueRow key="Launch framework agreement maximum value" value=launchFrameworkAgreementMaximumValue.value }}
+                              {{> Platform:customTemplateFragments::KeyLongValueRow key="Legal basis description" value=legalBasisDescription.value }}
+                              {{> Platform:customTemplateFragments::KeyIriRow key="Legal basis" iri=legalBasis.value label=legalBasisLabel.value hide-if-undef=true}}
+                              {{> Platform:customTemplateFragments::KeyValueRow key="Subject to term" value=SubjectToTerm.value }}
+                              {{#if (cond-eq hasStrategicProcurement.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedValuesRow key="Fulfills strategic procurement" resource=lot propertyPath="epo:fulfillsStrategicProcurement / epo:fulfillsRequirement"}}{{/if}}
+                              
+                            </bs-card-body>
+                          </bs-accordion-collapse>
+                        </bs-card>
+                      </bs-accordion>
+
+                  {{/bind}}
                 </bs-col>
                 {{#if tender}}
                 <bs-col sm=6 id="tender-details" class="side-by-side-box">
-                  <p class="inner-title">Tender <b><i>{{tenderLabel.value}}</i></b> details</p>
-                  {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=tender.value }}
-                  {{#if concessionMethod}}{{> Platform:customTemplateFragments::KeyValueCols key="Concession method" key-sm-offset="2" key-sm="2" val-sm-offset="0" val-sm="2" value=concessionMethod.value }}{{/if}}
+                  <!-- <p class="inner-title">Tender <b><i>{{tenderLabel.value}}</i></b> details</p> -->
+                  <p class="inner-title">Tender <b><i>{{> Platform:customTemplateFragments::Semlink iri=tender.value label=tenderLabel.value }}</i></b> details</p>
+                  {{#bind key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true }}
+                  <!-- {{#bind hide-if-undef=true }} -->
+                    {{#if tenderConcessionMethod}}{{> Platform:customTemplateFragments::KeyValueCols key="Concession method" value=tenderConcessionMethod.value }}{{/if}}
+                    
+                    {{> Platform:customTemplateFragments::KeyValueRow value=tenderDescription.value key="Description" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasVersion.value key="Version" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasUUID.value key="UUID" }}
+                    
+                    {{#if issued}}{{> Platform:customTemplateFragments::KeyValueRow value=issued.value key="Issued" value=(dateTimeFormat issued.value "YYYY-MM-DD H:mm:ss Z")}}{{/if}}
+                    {{#if hasPublicationDate}}{{> Platform:customTemplateFragments::KeyValueRow value=hasPublicationDate.value key="Publication date" value=(dateTimeFormat hasPublicationDate.value "YYYY-MM-DD H:mm:ss Z")}}{{/if}}
+                    {{#if hasReceptionDate}}{{> Platform:customTemplateFragments::KeyValueRow value=hasReceptionDate.value key="Reception date" value=(dateTimeFormat hasReceptionDate.value "YYYY-MM-DD H:mm:ss Z")}}{{/if}}
+                    {{#if hasDispatchDate}}{{> Platform:customTemplateFragments::KeyValueRow value=hasDispatchDate.value key="Dispatch date" value=(dateTimeFormat hasDispatchDate.value "YYYY-MM-DD H:mm:ss Z")}}{{/if}}
+                    
+                    {{> Platform:customTemplateFragments::KeyIriRow iri=refersToPrevious.value key="Refers to previous"}}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=associatedWith.value key="Associated with"}}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasUnofficialLanguage.value key="Unofficial language"}}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasOfficialLanguage.value key="Official language"}}
+                    
+                    {{> Platform:customTemplateFragments::KeyLinkRow iri=hasAccessURL key="Access URL"}}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasElectronicDigest.value key="Electronic digest" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasElectronicSignature.value key="Electronic signature" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasElectronicSubmission.value key="Electronic submission" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=isVariant.value key="Is variant" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=isSubmitedBy.value key="Is submited by" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=isSubjectToGrouping.value key="Is subject to grouping" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasFinancialOfferValue.value key="Financial offer value" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=specifiesSubcontractors.value key="Specifies subcontractors" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=foreseesSubcontracting.value key="Foresees subcontracting" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasSubcontracting.value key="Subcontracting" }}
+                    {{> Platform:customTemplateFragments::KeyValueRow value=hasItemCountryOfOrigin.value key="Item country of origin" }}
+                  {{/bind}}
                 </bs-col>
                 {{/if}}
               </bs-row>
@@ -2279,6 +2397,24 @@
                         {{/bind}}
                       {{else}}
                       <p><i>No lot specific terms specified.</i></p>
+                      {{/if}}
+                    </div>
+                  </div>
+                </div>
+                <div class="container lots-inner-box">
+                  <p class="inner-title">Criteria</p>
+                  <div class="row">
+                    <div class="term-container">
+                      {{#if 
+                        (cond-eq hasAnyCriterion.value "true")
+                      }}
+                        {{#bind key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true }}
+                          {{#if (cond-eq hasAnyCriterion.value "true")}}
+                              {{> ::tf-lots-and-tenders--criteria}}
+                          {{/if}}
+                        {{/bind}}
+                      {{else}}
+                      <p><i>No criteria specified.</i></p>
                       {{/if}}
                     </div>
                   </div>
