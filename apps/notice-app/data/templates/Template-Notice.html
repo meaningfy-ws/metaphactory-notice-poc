@@ -139,7 +139,9 @@
       ?electronicDigest
       ?electronicSignature
       ?hasNoticeType
+      ?hasNoticeTypeLabel
       ?hasFormType
+      ?hasFormTypeLabel
       
   WHERE {
       BIND (?? as ?notice)
@@ -167,8 +169,20 @@
       OPTIONAL { ?notice epo:refersToNotice ?otherNotice }
       OPTIONAL { ?notice dct:title ?title }
       OPTIONAL { ?notice epo:hasEFormsSubtype ?eFormsSubtype }
-      OPTIONAL { ?notice epo:hasNoticeType ?hasNoticeType }
-      OPTIONAL { ?notice epo:hasFormType ?hasFormType }
+      OPTIONAL {
+        ?notice epo:hasNoticeType ?hasNoticeType
+        SERVICE Service:label {
+          ?hasNoticeType mplabel:label ?hasNoticeTypeLabel ;
+          mplabel:preferredLanguage ?__userPreferredLanguage__ .
+        }
+      }
+      OPTIONAL { 
+        ?notice epo:hasFormType ?hasFormType
+        SERVICE Service:label {
+          ?hasFormType mplabel:label ?hasFormTypeLabel ;
+          mplabel:preferredLanguage ?__userPreferredLanguage__ .
+        }
+      }
       OPTIONAL { ?notice epo:hasFormNumber ?formNumber }
       OPTIONAL { ?notice dct:issued ?issued }
       OPTIONAL { ?notice epo:hasReceptionDate ?receptionDate }
@@ -210,6 +224,8 @@
       {{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value hide-if-undef=true}}
       {{> Platform:customTemplateFragments::KeyIriRow show-kp=true key="Other notice" iri=otherNotice.value hide-if-undef=true}}
       
+      {{> Platform:customTemplateFragments::KeyIriRow key="Notice type" iri=hasNoticeType.value label=hasNoticeTypeLabel.value hide-if-undef=true}}
+      {{> Platform:customTemplateFragments::KeyIriRow key="Form type" iri=hasFormType.value label=hasFormTypeLabel.value hide-if-undef=true}}
       {{> Platform:customTemplateFragments::KeyIriRow key="Official language" iri=lang.value label=langLabel.value hide-if-undef=true}}
       {{> Platform:customTemplateFragments::KeyValueRow key="unofficialLanguage" value=unofficialLanguage.value hide-if-undef=true}}
       {{> Platform:customTemplateFragments::KeyValueRow key="e-forms subtype" value=eFormsSubtype.value hide-if-undef=true}}
