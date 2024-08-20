@@ -353,15 +353,15 @@
         ?notice epo:announcesRole ?role .
         ?role a epo:Buyer ;
           epo:playedBy ?buyerOrg .
-        ?buyerOrg a org:Organization ;
-          epo:hasLegalName ?legalName ;
-          epo:hasBuyerLegalType ?legalType ;
-          epo:hasMainActivity ?mainActivity ;
-          cccev:registeredAddress ?orgAddress .
+        OPTIONAL { ?buyerOrg epo:hasLegalName ?legalName . }
+        OPTIONAL {
+          ?buyerOrg epo:hasMainActivity ?mainActivity 
           SERVICE Service:label {
-            ?mainActivity mplabel:label ?mainActivityLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
+              ?mainActivity mplabel:label ?mainActivityLabel ;
+              mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            }
+        }
+        OPTIONAL { ?buyerOrg cccev:registeredAddress ?orgAddress . }
       }
       "
       template='{{>tpl2 }}'>
@@ -810,15 +810,13 @@
       OPTIONAL { ?term epo:hasReviewProcedure ?hasReviewProcedure }
       OPTIONAL {
         ?term epo:definesReviewProcedureInformationProvider / epo:playedBy ?infoProviderOrg .
-        ?infoProviderOrg a org:Organization ;
-          epo:hasLegalName ?infoProviderName ;
-          epo:hasLegalIdentifier / skos:notation ?infoProviderId .
+        OPTIONAL {?infoProviderOrg epo:hasLegalName ?infoProviderName  }
+        OPTIONAL {?infoProviderOrg epo:hasLegalIdentifier / skos:notation ?infoProviderId }
       }
       OPTIONAL {
         ?term epo:definesReviewer / epo:playedBy ?reviewerOrg .
-        ?reviewerOrg a org:Organization ;
-          epo:hasLegalName ?reviewerName ;
-          epo:hasLegalIdentifier / skos:notation ?reviewerId .
+        OPTIONAL {?reviewerOrg epo:hasLegalName ?reviewerName }
+        OPTIONAL {?reviewerOrg epo:hasLegalIdentifier / skos:notation ?reviewerId }
       }
       OPTIONAL {
         ?term epo:hasReviewDeadline ?deadline .
@@ -1930,9 +1928,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
             epo:concernsTender|epo:describesTender ?tender .
       
         OPTIONAL {
-          
-          ?tenderAwardOutcome
-            ^epo:comprisesTenderAwardOutcome ?awardOutcome .
+          ?tenderAwardOutcome ^epo:comprisesTenderAwardOutcome ?awardOutcome .
           OPTIONAL {
             ?awardOutcome epo:hasAwardStatus ?awardStatus 
             SERVICE Service:label {
@@ -1952,8 +1948,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         }
         ?role a epo:Winner ;
             epo:playedBy ?winnerOrg .
-        ?winnerOrg a org:Organization ;
-          epo:hasLegalName ?legalName .
+        OPTIONAL { ?winnerOrg  epo:hasLegalName ?legalName }
         OPTIONAL { ?winnerOrg epo:hasBuyerLegalType ?legalType }
         OPTIONAL { ?winnerOrg epo:hasMainActivity ?mainActivity }
         OPTIONAL { 
@@ -2105,58 +2100,58 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
     OPTIONAL {
       ?lot ^epo:isSubmittedForLot ?tender .
       ?tender a epo:Tender ; 
-        ^epo:announcesTender ?notice ;
-        epo:foreseesConcession [epo:hasCalculationMethod ?tenderConcessionMethod ] .
-        SERVICE Service:label {
-          ?tender mplabel:label ?_tenderLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
+        ^epo:announcesTender ?notice .
+      SERVICE Service:label {
+        ?tender mplabel:label ?_tenderLabel ;
+        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+      OPTIONAL { ?tender epo:foreseesConcession [epo:hasCalculationMethod ?tenderConcessionMethod ] }
   
-        OPTIONAL {
-          ?tender ?titlePred ?tenderTitle ;
-          FILTER(?titlePred in (
-              epo:hasTitle,
-              dct:title
-          )) .
-        }
-        BIND(COALESCE(?tenderTitle, ?_tenderLabel) AS ?tenderLabel)
-        OPTIONAL { ?tender dct:issued ?issued }
-        OPTIONAL { ?tender ?descriptionProp ?tenderDescription 
-          FILTER(?descriptionProp in (
-              dct:description,
-              epo:hasDescription
-          )) .
-        }        
-        OPTIONAL { ?tender epo:hasPublicationDate ?hasPublicationDate }
-        OPTIONAL { ?tender epo:hasReceptionDate ?hasReceptionDate }
-        OPTIONAL { ?tender epo:hasDispatchDate ?hasDispatchDate }
-        OPTIONAL { ?tender epo:hasVersion ?hasVersion }
-        OPTIONAL { ?tender epo:hasUUID ?hasUUID }
-        OPTIONAL { ?tender epo:refersToPrevious ?refersToPrevious }
-        OPTIONAL { ?tender epo:associatedWith ?associatedWith }
-        OPTIONAL { ?tender epo:hasUnofficialLanguage ?hasUnofficialLanguage }
-        OPTIONAL { ?tender epo:hasOfficialLanguage ?hasOfficialLanguage }
-        OPTIONAL { ?tender epo:hasAccessURL ?hasAccessURL }
-        OPTIONAL { ?tender epo:hasElectronicDigest ?hasElectronicDigest }
-        OPTIONAL { ?tender epo:hasElectronicSignature ?hasElectronicSignature }
-        OPTIONAL { ?tender epo:hasElectronicSubmission ?hasElectronicSubmission }
-        OPTIONAL { ?tender epo:isVariant ?isVariant }
-        OPTIONAL { ?tender epo:isSubmitedBy ?isSubmitedBy }
-        OPTIONAL { ?tender epo:isSubmittedForLot ?isSubmittedForLot }
-        OPTIONAL { ?tender epo:isSubjectToGrouping ?isSubjectToGrouping }
-        OPTIONAL { ?tender epo:hasFinancialOfferValue ?hasFinancialOfferValue }
-        OPTIONAL { ?tender epo:specifiesSubcontractors ?specifiesSubcontractors }
-        OPTIONAL { ?tender epo:foreseesSubcontracting ?foreseesSubcontracting }
-        OPTIONAL { ?tender epo:hasSubcontracting ?hasSubcontracting }
-        OPTIONAL { ?tender epo:hasItemCountryOfOrigin ?hasItemCountryOfOrigin }
+      OPTIONAL {
+        ?tender ?titlePred ?tenderTitle ;
+        FILTER(?titlePred in (
+            epo:hasTitle,
+            dct:title
+        )) .
+      }
+      BIND(COALESCE(?tenderTitle, ?_tenderLabel) AS ?tenderLabel)
+      OPTIONAL { ?tender dct:issued ?issued }
+      OPTIONAL { ?tender ?descriptionProp ?tenderDescription 
+        FILTER(?descriptionProp in (
+            dct:description,
+            epo:hasDescription
+        )) .
+      }        
+      OPTIONAL { ?tender epo:hasPublicationDate ?hasPublicationDate }
+      OPTIONAL { ?tender epo:hasReceptionDate ?hasReceptionDate }
+      OPTIONAL { ?tender epo:hasDispatchDate ?hasDispatchDate }
+      OPTIONAL { ?tender epo:hasVersion ?hasVersion }
+      OPTIONAL { ?tender epo:hasUUID ?hasUUID }
+      OPTIONAL { ?tender epo:refersToPrevious ?refersToPrevious }
+      OPTIONAL { ?tender epo:associatedWith ?associatedWith }
+      OPTIONAL { ?tender epo:hasUnofficialLanguage ?hasUnofficialLanguage }
+      OPTIONAL { ?tender epo:hasOfficialLanguage ?hasOfficialLanguage }
+      OPTIONAL { ?tender epo:hasAccessURL ?hasAccessURL }
+      OPTIONAL { ?tender epo:hasElectronicDigest ?hasElectronicDigest }
+      OPTIONAL { ?tender epo:hasElectronicSignature ?hasElectronicSignature }
+      OPTIONAL { ?tender epo:hasElectronicSubmission ?hasElectronicSubmission }
+      OPTIONAL { ?tender epo:isVariant ?isVariant }
+      OPTIONAL { ?tender epo:isSubmitedBy ?isSubmitedBy }
+      OPTIONAL { ?tender epo:isSubmittedForLot ?isSubmittedForLot }
+      OPTIONAL { ?tender epo:isSubjectToGrouping ?isSubjectToGrouping }
+      OPTIONAL { ?tender epo:hasFinancialOfferValue ?hasFinancialOfferValue }
+      OPTIONAL { ?tender epo:specifiesSubcontractors ?specifiesSubcontractors }
+      OPTIONAL { ?tender epo:foreseesSubcontracting ?foreseesSubcontracting }
+      OPTIONAL { ?tender epo:hasSubcontracting ?hasSubcontracting }
+      OPTIONAL { ?tender epo:hasItemCountryOfOrigin ?hasItemCountryOfOrigin }
     }
     
     OPTIONAL {
       ?lotAwardOutcome a epo:LotAwardOutcome ;
-      epo:concernsLot|epo:describesLot ?lot ;
-      epo:hasAwardedValue [
-        epo:hasAmountValue ?lotAwardOutcomeValue ; epo:hasCurrency ?lotAwardOutcomeCurrency 
-      ] .
+        epo:concernsLot|epo:describesLot ?lot ;
+        epo:hasAwardedValue [
+          epo:hasAmountValue ?lotAwardOutcomeValue ; epo:hasCurrency ?lotAwardOutcomeCurrency 
+        ] .
     }
     OPTIONAL {
         ?lot ?titlePred ?lotTitle ;
