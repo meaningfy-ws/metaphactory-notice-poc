@@ -1,0 +1,195 @@
+{{> Platform:SearchResultsFragments::defaultStyle}}
+
+<div class='page__body'>
+    <div style='padding-bottom: 32px'>
+      <div class="text-center">
+        <h1 style='padding-top: 24px;'><b>Notice application</b></h1>
+        <h4>
+        <p>POC application built for notice data</p></h4>        
+      </div>
+    </div>
+    <div class='search' style="padding-top: 32px;">  
+      {{> Platform:SearchResultsFragments::defaultStyle}}
+      <semantic-search id="notices-and-orgs-search"
+        relations='{
+            
+            "<http://metaphacts.com/relation/cpv>": [{
+                "kind": "resource",
+                "queryPattern": "
+                $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasPurpose>/<http://data.europa.eu/a4g/ontology#hasMainClassification> ?__value__ .
+                "
+            }],
+            
+            "<http://metaphacts.com/relation/buyer-main-activity-category>": [{
+                "kind": "resource",
+                "queryPattern": "
+                $subject <http://data.europa.eu/a4g/ontology#announcesRole>/<http://data.europa.eu/a4g/ontology#playedBy>/<http://data.europa.eu/a4g/ontology#hasMainActivity> ?__value__ . ?__value__ a <http://www.w3.org/2004/02/skos/core#Concept> .
+                "
+            }],
+            "<http://metaphacts.com/relation/procedure-type>": [{
+                "kind": "resource",
+                "queryPattern": "
+                $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasProcedureType> ?__value__ .
+                "
+            }],
+            "<http://metaphacts.com/relation/contract-nature-type>": [{
+                "kind": "resource",
+                "queryPattern": "
+                $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasProcurementScopeDividedIntoLot>/<http://data.europa.eu/a4g/ontology#foreseesContractSpecificTerm>/<http://data.europa.eu/a4g/ontology#hasContractNatureType> ?__value__ .
+                "
+            }],
+            "<http://metaphacts.com/relation/place-of-perf>": [{
+                "kind": "resource",
+                "queryPattern": "
+                $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasProcurementScopeDividedIntoLot>/<http://data.europa.eu/a4g/ontology#foreseesContractSpecificTerm>/<http://data.europa.eu/a4g/ontology#hasBroadPlaceOfPerformance> ?__value__ .
+                "
+            }],
+            "<http://metaphacts.com/relation/company-legal-name>": [{
+                "kind": "text",
+                "queryPattern": "
+                $subject <http://data.europa.eu/a4g/ontology#announcesRole>/<http://data.europa.eu/a4g/ontology#playedBy>/<http://data.europa.eu/a4g/ontology#hasLegalName> ?__value__ .
+                "
+            }],
+            "<http://metaphacts.com/relation/estimated-value>": [{
+                "kind": "text",
+                "queryPattern": "
+                $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasEstimatedValue>/<http://data.europa.eu/a4g/ontology#hasAmountValue> ?__value__ .
+                "
+            }]
+        }'
+        search-profile='{
+            "categories": [
+                {
+                    "iri": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "label": "Notice",
+                    "includeAsDomain": true
+                },
+                {
+                    "iri": "<http://data.europa.eu/a4g/ontology#Organization>",
+                    "label": "Organization",
+                    "includeAsDomain": true
+                },
+                {
+                    "iri": "<http://www.w3.org/ns/org#Organization>",
+                    "label": "organization",
+                    "includeAsDomain": false
+                },
+                {
+                    "iri": "<http://www.w3.org/2004/02/skos/core#Concept>",
+                    "label": "concept",
+                    "includeAsDomain": false
+                }
+            ],
+            "relations": [
+                {
+                    "iri": "<http://data.europa.eu/a4g/ontology#hasNoticeType>",
+                    "label": "notice type",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://data.europa.eu/a4g/ontology#hasFormType>",
+                    "label": "form type",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/buyer-main-activity-category>",
+                    "label": "buyer main activity",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/procedure-type>",
+                    "label": "procedure type",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/contract-nature-type>",
+                    "label": "contract nature",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/place-of-perf>",
+                    "label": "place of performance",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/cpv>",
+                    "label": "business sector (CPV)",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://data.europa.eu/a4g/ontology#hasDispatchDate>",
+                    "label": "dispatch date",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#date>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/publication-date>",
+                    "label": "publication date",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#date>"
+                },            
+                {
+                    "iri": "<http://metaphacts.com/relation/estimated-value>",
+                    "label": "estimated value",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#integer>"
+                }            
+            ]
+        }'
+        categories='{
+            "<http://www.w3.org/2004/02/skos/core#Concept>": [{
+
+            "kind": "hierarchy",
+            "queryPattern": "$subject ?__relation__ ?__value__",
+            "hierarchyResultSemantics": "individual",
+            "treePatterns": {
+                "kind": "simple"
+            }
+            }]
+        }'
+
+        >
+        <!-- TODO Fix publication date - it's not a date! -->
+        <div class="search">
+          <style>
+            [data-flex-layout*=rows][data-flex-layout*=stretch-], [data-flex-layout*=columns][data-flex-layout*=-stretch] {
+              justify-content: center;
+            }
+          </style>
+          <semantic-search-query-universal id="universal-search" 
+            query='
+                PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+                PREFIX keywordsearch: <http://www.metaphacts.com/ontologies/platform/service/keywordsearch/>
+                SELECT ?subject WHERE {
+                ?subject a ?__domain__
+                FILTER(?__keywordPattern__)
+                FILTER(?__expressionPattern__)
+                }'
+            count-query="
+                PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+                PREFIX keywordsearch: <http://www.metaphacts.com/ontologies/platform/service/keywordsearch/>
+                SELECT (COUNT(*) as ?count) WHERE {
+                FILTER(?__keywordPattern__)
+                }">
+          </semantic-search-query-universal>
+            <semantic-search-facet-store id="facet"></semantic-search-facet-store>
+            <semantic-search-result-group template="{{> searchResultGroupTemplate}}">
+              <template id="searchResultGroupTemplate">
+                <div class="searchTopMenu">
+                  {{> Platform:SearchResultsFragments::startButton}}
+                  {{> Platform:SearchResultsFragments::clearDomain}}
+                </div>
+                {{> Platform:SearchResultsFragments::searchResultGroupTemplate}}
+              </template>
+            </semantic-search-result-group>
+          </div>
+        </semantic-search>
+    </div>  
+</div>
