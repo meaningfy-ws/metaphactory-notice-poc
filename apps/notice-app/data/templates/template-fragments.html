@@ -1,0 +1,478 @@
+<style>
+    .kv-key-label {
+        padding-left: 8px;
+        color: rgb(149, 150, 154);
+        font-size: 0.9em;   
+    }
+    .kv-discrete-value-label {
+        background-color: rgb(166, 174, 208);
+        font-size: 1.1em;   
+    }
+    .kv-value-label {
+        font-size: 1.1em;   
+    }
+</style>
+
+<!--                       CONSTANTS AND CONFIG VALUES                      -->
+<!--   Beware of extra spacing in below values as these would be preserved
+       and led to undesired effect!                                         -->
+
+<!-- <template-fragment export id="CFG_VAL_TEMPLATE">
+    {{#if arg}}{{arg}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_X}} {{/if}}
+</template-fragment> -->
+<template-fragment export id="DEFAULT_KEY_COL_WIDTH">3</template-fragment>
+<template-fragment export id="DEFAULT_KEY_COL_OFFSET">0</template-fragment>
+<template-fragment export id="DEFAULT_VALUE_COL_WIDTH">9</template-fragment>
+<template-fragment export id="DEFAULT_VALUE_COL_OFFSET">0</template-fragment>
+<!-- <template-fragment export id="DEFAULT_KEY_HEADER">4</template-fragment> -->
+
+<!-- `key-sm` param: custom width of a key column -->
+<template-fragment export id="KEY_COL_WIDTH">{{#if key-sm}}{{key-sm}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_COL_WIDTH}} {{/if}}</template-fragment>
+<!-- `key-sm-offset` param: custom offset of a key column -->
+<template-fragment export id="KEY_COL_OFFSET">{{#if key-sm-offset}}{{key-sm-offset}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_COL_OFFSET}} {{/if}}</template-fragment>
+<!-- `val-sm` param: custom width of a value column -->
+<template-fragment export id="VALUE_COL_WIDTH">{{#if val-sm}}{{val-sm}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_COL_WIDTH}} {{/if}}</template-fragment>
+<!-- `val-sm-offset` param: custom offset of a value column -->
+<template-fragment export id="VALUE_COL_OFFSET">{{#if val-sm-offset}}{{val-sm-offset}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_VALUE_COL_OFFSET}} {{/if}}</template-fragment>
+<!-- <template-fragment export id="KEY_HEADER">{{#if header}}{{header}}{{else}}{{> Platform:customTemplateFragments::DEFAULT_KEY_HEADER}} {{/if}}</template-fragment> -->
+<template-fragment export id="TRUE_AS_IMG">
+    <span class="material-symbols-outlined" style="font-size: 2em">check_circle</span> 
+</template-fragment>
+<template-fragment export id="FALSE_AS_IMG">
+    <span class="material-symbols-outlined" style="font-size: 2em">cancel</span> 
+</template-fragment>
+
+
+<!--                                PARTIALS                                -->
+<!-- 
+    Key-value row where value is a text.
+
+    params:
+        iri: IRI to be transformed into URL within the app domain
+        label: optional; text for the displayed hyperlink. If not given, then
+               the label is resolved using Label Service.
+-->
+<template-fragment export id='Semlink'>
+    {{#if iri}}
+    <semantic-link iri="{{iri}}">{{#if label}}{{label}}{{else}}<mp-label iri="{{iri}}"></mp-label>{{/if}}</semantic-link>
+    {{^}}
+    {{/if}}
+</template-fragment>
+
+<template-fragment export id='Link'>
+    <a href="{{iri.value}}">{{iri.value}}</a>
+</template-fragment>
+
+<template-fragment export id='KeyLinkRow'>
+    {{#if iri}}
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label">{{> Platform:customTemplateFragments::Link}}</p>
+        </bs-col>
+    </bs-row>
+    {{/if}}
+</template-fragment>
+
+<!-- 
+    Key-value row where value is a text.
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        value: text
+-->
+<!-- <template-fragment export id='KeyValueRow'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <h4>{{key}}: </h4>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p>{{value}}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment> -->
+
+<template-fragment export id='KeyValueRow'>
+    {{#if value}}
+    <bs-row>
+        {{> Platform:customTemplateFragments::KeyValueCols}}
+    </bs-row>
+    {{/if}}
+</template-fragment>
+
+<!-- These needs to be embedded within a bs-row! -->
+<template-fragment export id='KeyValueCols'>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+        <p class="kv-key-label">{{key}}</p>
+    </bs-col>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+        <p class="kv-value-label">{{value}}</p>
+    </bs-col>
+</template-fragment>
+
+
+<!-- Key-value row where value is a result of the given partial executed with the
+     context passed to this fragment.
+    params:
+        partial: name of the partial generating the value.
+-->
+<!-- <template-fragment export id='KeyPartialRow'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label">{{> (lookup . 'partial') }}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment> -->
+
+<template-fragment export id='KeyBoolValueRow'>
+    <bs-row>
+        {{> Platform:customTemplateFragments::KeyBoolValueCols}}
+    </bs-row>
+</template-fragment>
+
+<!-- These needs to be embedded within a bs-row! -->
+<template-fragment export id='KeyBoolValueCols'>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+        <p class="kv-key-label">{{key}}</p>
+    </bs-col>
+    <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+        <p class="kv-value-label">
+            {{#if (cond-and value (cond-eq value "true")) }}{{> Platform:customTemplateFragments::TRUE_AS_IMG}}{{^}}{{> Platform:customTemplateFragments::FALSE_AS_IMG}}{{/if}}
+        </p>
+    </bs-col>
+</template-fragment>
+
+<template-fragment export id='KeyLongValueRow'>
+    <bs-row>
+        {{> Platform:customTemplateFragments::KeyLongValueCols}}
+    </bs-row>
+</template-fragment>
+
+<!-- These needs to be embedded within a bs-row! -->
+<template-fragment export id='KeyLongValueCols'>
+    {{#if value}}
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label">{{> Platform:customTemplateFragments::TruncateText text=value}}</p>
+        </bs-col>
+    {{/if}}
+</template-fragment>
+
+<!-- 
+    Key-value row where value is IRI with label provided by the caller.
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        iri: IRI to be transformed into URL within the app domain
+        label: text for the displayed hyperlink
+        hide-if-undef: optional; true or false
+        show-kp: If enabled, then icon allowing to display Knowledge Panel will be added
+-->
+<template-fragment export id='KeyIriRow'>
+    {{#if iri}}
+    {{> Platform:customTemplateFragments::_KeyIriRow}}
+    {{^}}
+    {{#unless hide-if-undef}}
+    <p><i>No value for '{{key}}'' key.</i></p>
+    {{/unless}}
+    {{/if}}
+</template-fragment>
+<template-fragment export id='_KeyIriRow'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <!-- <p><semantic-link iri="{{iri}}">{{label}}</semantic-link></p> -->
+            {{log show-kp}}
+            {{#if show-kp}}
+                {{> Platform:customTemplateFragments::IriWithKnowledgePanelView}}
+            {{else}}
+                <p class="kv-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
+            {{/if}}
+        </bs-col>
+    </bs-row>
+</template-fragment>
+
+<template-fragment export id='KeyIriRowAutoLabel'>
+    {{#if iri}}
+    {{> Platform:customTemplateFragments::_KeyIriRowAutoLabel}}
+    {{^}}
+    {{#unless hide-if-undef}}
+    <p><i>No value for '{{key}}'' key.</i></p>
+    {{/unless}}
+    {{/if}}
+</template-fragment>
+<!-- 
+    Key-value row where value is IRI with label resolved by the system
+    (by label service relying on vocabularies loaded into system)
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        iri: IRI to be transformed into URL within the app domain
+-->
+<template-fragment export id='_KeyIriRowAutoLabel'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <!-- <p><semantic-link iri="{{iri}}"><mp-label iri="{{iri}}"></mp-label></semantic-link></p> -->
+            <p class="kv-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment>
+
+<!-- 
+    Key-value row where value is IRI with label resolved by the system
+    (by label service relying on vocabularies loaded into system).
+    This is a variant of `KeyIriRowAutoLabel` dedicated for external resources.
+    These are visually distinguished by the use of italic text style.
+
+    params:
+        key: text to be displayed as a label on the left side of the value
+        iri: IRI to be transformed into URL within the app domain
+-->
+<!-- <template-fragment export id='KeyExtIriRowAutoLabel'>
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+             <p class="kv-discrete-value-label">{{> Platform:customTemplateFragments::Semlink}}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment> -->
+
+<!-- 
+    params:
+        key:
+        value:
+        currency:
+-->
+<template-fragment export id="KeyMoneyRow">
+    {{#if (cond-and value currency) }}
+        {{> Platform:customTemplateFragments::KeyValueRow key=key value=(number-format value style="currency" currency=currency) }}
+    {{^}}
+    {{/if}}
+</template-fragment>
+
+<!-- 
+    params:    
+    text
+-->
+<template-fragment export id="TruncateText">
+  <mp-text-truncate lines="3" expand="{{> expand}}" collapse="{{> collapse}}">
+    <template id="expand">
+        <span style="color: gray;">...
+            <a><b>
+                <span class="material-symbols-outlined">unfold_more</span>
+            </b></a>
+        </span>
+    </template>
+    <template id="collapse">
+        <a><b>
+            <span class="material-symbols-outlined">unfold_less</span>
+        </b></a>
+    </template>
+    {{text}}
+  </mp-text-truncate>
+</template-fragment>
+
+
+<!-- 
+    Displays money amount together with currency label.
+
+    params:
+        value: amount of money.
+        currency: an IRI representing currency. Label of the currency will be
+                  resolved using label service and displayed on the right side
+                  of the value.
+-->
+<!-- <template-fragment export id='FormatMoneyValue'>
+    {{value}} <mp-label iri="{{currency}}"></mp-label>
+</template-fragment> -->
+
+
+<!-- 
+    Displays IRIs as comma-separated values.
+
+    params:
+        bindings: list of objects with 'resource' and 'label' attributes.
+-->
+<template-fragment export id="IriCSValues">
+    {{#each bindings}}{{#if @first}}{{else}}, {{/if}}
+    <semantic-link uri="{{resource.value}}">{{label.value}}</semantic-link>
+    {{/each}}
+</template-fragment>
+
+<!-- 
+  Displays comma-separated list of fetched properties for the given resource.
+
+  params:
+    resource: IRI of the resource to be used as a subject in a BGP 
+    propertyPath: property or property path
+-->
+<template-fragment export id="FetchMultipleValuesInline">
+    {{log "FetchMultipleValuesInline" resource propertyPath}}
+    <semantic-query id="multiple-vals-inline" query='
+        PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+        PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+        
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        
+        SELECT ?resource ?label
+        WHERE {
+            # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_SubmissionTerm_TT87XZ7rfCixVuS4Z9trMH> as ?resource)                  
+            # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_SubmissionTerm_TT87XZ7rfCixVuS4Z9trMH> as ?resource)                  
+            {{resource}} {{propertyPath}} ?resource 
+            SERVICE Service:label {
+            ?resource mplabel:label ?label ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            }
+        }
+        ' template="{{> Platform:customTemplateFragments::IriCSValues}}" style="display: inline;">
+    </semantic-query>
+</template-fragment>
+
+<!-- 
+  Displays Key-value of fetched properties for the given resource.
+
+  Knowledge panel will be enabled for EPO terms.
+
+  params:
+    iri: IRI of the resource to be used as a subject in a BGP 
+    excludedProps: CURIes of properties to exclude (comma-separated list)
+-->
+<template-fragment export id="FetchResourceProperties">
+    {{log "FetchResourceProperties" iri excludedProps}}
+    <semantic-query id="kv-vals" query='
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX locn: <http://www.w3.org/ns/locn#> 
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX dct: <http://purl.org/dc/terms/>
+    
+    
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+    
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+    
+    SELECT 
+        ?property
+        ?propertyLabel
+        ?value
+        ?valueLabel
+        ?isEpoTerm
+    WHERE {
+        #  BIND(<http://data.europa.eu/a4g/resource/id_2022-S-131-374866_Lot_P8CuD8GqVLWXSaTLMofydw> AS ?lot)
+        #BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0002> AS ?lot)
+        # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_AwardCriterion_Ee3JXqpmik8eG35Uay4dJk> as ?criterion)
+        BIND({{iri}} AS ?resource)
+        ?resource ?property ?value .
+        # FILTER(?property NOT IN (skos:prefLabel, dct:description))
+        FILTER(?property NOT IN ({{excludedProps}}))
+        ?property skos:prefLabel ?propertyLabel .
+        BIND((STRSTARTS(STR(?value), "http://data.europa.eu/a4g/")) AS ?isEpoTerm)
+        OPTIONAL {
+            FILTER(isIRI(?value))
+            SERVICE Service:label {
+                ?value mplabel:label ?valueLabel ;
+                mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            }
+        }
+    }
+    ORDER BY ?propertyLabel
+    ' template='{{>tpl }}'>
+        <template id='tpl'>
+          {{#each bindings}}
+            {{log property propertyLabel value valueLabel }}
+            {{#if valueLabel.value}}
+                {{#bind shouldEnableKp=(cond-eq isEpoTerm.value "true")}}
+                    {{log propertyLabel valueLabel shouldEnableKp}}
+                    {{> Platform:customTemplateFragments::KeyIriRow show-kp=shouldEnableKp key=propertyLabel.value iri=value.value label=valueLabel.value hide-if-undef=true}}
+                {{/bind}}
+            {{else}}
+                {{> Platform:customTemplateFragments::KeyValueRow key=propertyLabel.value value=value.value hide-if-undef=true}}
+            {{/if}}
+          {{/each}}
+        </template>
+    </semantic-query>
+</template-fragment>
+
+<!-- 
+    params:
+        key:
+        resource:
+-->
+<template-fragment export id="KeyFetchedValuesRow">
+    <bs-row>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::KEY_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::KEY_COL_WIDTH}}">
+            <p class="kv-key-label">{{key}}</p>
+        </bs-col>
+        <bs-col sm-offset="{{> Platform:customTemplateFragments::VALUE_COL_OFFSET}}" sm="{{> Platform:customTemplateFragments::VALUE_COL_WIDTH}}">
+            <p class="kv-value-label" style="display: inline;">{{> Platform:customTemplateFragments::FetchMultipleValuesInline}}</p>
+        </bs-col>
+    </bs-row>
+</template-fragment>
+
+<!-- 
+    params:
+        iri:
+        label: optional
+-->
+<template-fragment export id="IriWithKnowledgePanelView">
+    <div style="display: inline !important">
+    {{> Platform:customTemplateFragments::Semlink}}
+    <mp-popover> 
+        <mp-popover-trigger placement='bottom' trigger='["click"]' >
+          <a><span class="material-symbols-outlined" style="color: rgb(177, 177, 179); padding-left: 3px; ">info</span></a>
+        </mp-popover-trigger>
+        <mp-popover-content>
+          <div style='background: #fff; color: #333; margin: -9px -14px; padding: 9px 14px; overflow: auto; width: 400px;'>
+            <style>.popover { max-width: 404px }</style>
+            <mp-knowledge-panel iri='{{iri}}'></mp-knowledge-panel>
+          </div>
+        </mp-popover-content>
+      </mp-popover>  
+    </div>
+</template-fragment>
+
+<!-- 
+params:
+    iri
+-->
+<template-fragment export id="TermDefinitionTooltippedIcon">
+    <semantic-query id="semantic-query-term-def"
+    query="
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        SELECT ?prop ?tooltip
+        WHERE {
+        BIND({{iri}} AS ?prop) .
+        ?prop skos:prefLabel ?label .
+        OPTIONAL { ?prop skos:definition ?definition }
+        BIND(COALESCE(?definition, ?label) AS ?tooltip)
+        }
+    "
+    template='{{>tpl }}'>
+        <template id='tpl'>
+            {{#each bindings}}
+                <span 
+                    class="material-symbols-outlined" 
+                    style="color: rgb(177, 177, 179); padding-left: 3px; font-size: 0.9em; vertical-align: -0.2em; display: inline !important"
+                    title="{{tooltip.value}}"
+                >help</span>
+            {{/each}}
+        </template>
+    </semantic-query>
+</template-fragment>
