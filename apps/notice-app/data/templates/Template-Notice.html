@@ -122,11 +122,11 @@
       ?otherNotice
       
       # dates
-      # ?dispatchDate
-      # ?publicationDate
-      # ?issued
-      # ?receptionDate
-      # ?eSenderDispatchDate
+      ?dispatchDate
+      ?publicationDate
+      ?issued
+      ?receptionDate
+      ?eSenderDispatchDate
       
       ?lang
       ?langLabel
@@ -163,7 +163,10 @@
           ?id epo:hasIdentifierValue ?idStr . 
       }
   
-      OPTIONAL { ?notice epo:hasPublicationDate ?publicationDate } 
+      OPTIONAL {
+        ?notice epo:hasPublicationDate ?_publicationDate 
+        BIND(STRDT(CONCAT(SUBSTR(?_publicationDate, 1, 4), '-', SUBSTR(?_publicationDate, 5, 2), '-', SUBSTR(?_publicationDate, 7, 2)), xsd:date) AS ?publicationDate).
+      } 
       OPTIONAL { ?notice epo:hasDispatchDate ?dispatchDate } 
       OPTIONAL { ?notice dct:description ?description } 
       OPTIONAL { ?notice epo:refersToNotice ?otherNotice }
@@ -203,42 +206,35 @@
       OPTIONAL { ?notice epo:hasAccessURL ?accessURL }
       OPTIONAL { ?notice epo:hasElectronicDigest ?electronicDigest }
       OPTIONAL { ?notice epo:hasElectronicSignature ?electronicSignature }
-  }
-  
-  
-    "
+  }"
     template='{{>tpl }}'>
     <template id='tpl'>
       {{#each bindings}}
-      <!-- {{> Platform:customTemplateFragments::KeyIriRow key="IRI" iri=notice.value label=notice }} -->
-      {{> Platform:customTemplateFragments::KeyIriRow key="ID" iri=id.value label=idStr.value hide-if-undef=true}}
-      <!-- {{#bind pubDate=(dateTimeFormat publicationDate.value "YYYY-MM-DD") }}
-      {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=pubDate }}
-      {{/bind}} -->
-      <!-- {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=publicationDate.value }} -->
-      <!-- {{#if dispatchDate}}{{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value }}{{/if}} -->
-      {{> Platform:customTemplateFragments::KeyValueRow key="Title" value=title.value hide-if-undef=true}}
-      
-      
-      {{> Platform:customTemplateFragments::KeyLongValueRow key="Description" value=description.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyIriRow show-kp=true key="Other notice" iri=otherNotice.value hide-if-undef=true}}
-      
-      {{> Platform:customTemplateFragments::KeyIriRow key="Notice type" iri=hasNoticeType.value label=hasNoticeTypeLabel.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyIriRow key="Form type" iri=hasFormType.value label=hasFormTypeLabel.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyIriRow key="Official language" iri=lang.value label=langLabel.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="unofficialLanguage" value=unofficialLanguage.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="e-forms subtype" value=eFormsSubtype.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="Form number" value=formNumber.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="noticePublicationNumber" value=noticePublicationNumber.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="OJSType" value=OJSType.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="uuid" value=uuid.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="version" value=version.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="accessURL" value=accessURL.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="electronicDigest" value=electronicDigest.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyValueRow key="electronicSignature" value=electronicSignature.value hide-if-undef=true}}
-      
-      <!-- {{> Platform:customTemplateFragments::KeyIriRow key="Procedure" iri=procedure.value label="procedure"}} -->
+        {{> Platform:customTemplateFragments::KeyIriRow key="ID" iri=id.value label=idStr.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="Title" value=title.value hide-if-undef=true}}
+        
+        {{> Platform:customTemplateFragments::KeyLongValueRow key="Description" value=description.value hide-if-undef=true}}      
+        {{> Platform:customTemplateFragments::KeyIriRow show-kp=true key="Other notice" iri=otherNotice.value hide-if-undef=true}}
+        
+        {{> Platform:customTemplateFragments::KeyIriRow key="Notice type" iri=hasNoticeType.value label=hasNoticeTypeLabel.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyIriRow key="Form type" iri=hasFormType.value label=hasFormTypeLabel.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyIriRow key="Official language" iri=lang.value label=langLabel.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="unofficialLanguage" value=unofficialLanguage.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="e-forms subtype" value=eFormsSubtype.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="Form number" value=formNumber.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="noticePublicationNumber" value=noticePublicationNumber.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="OJSType" value=OJSType.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="uuid" value=uuid.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="version" value=version.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="accessURL" value=accessURL.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="electronicDigest" value=electronicDigest.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="electronicSignature" value=electronicSignature.value hide-if-undef=true}}
+        
+        {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=publicationDate.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="Dispatch date" value=dispatchDate.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="Issued" value=issued.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="Reception date" value=receptionDate.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyValueRow key="e-sender dispatch date" value=eSenderDispatchDate.value hide-if-undef=true}}
       {{/each}}
     </template>
   </semantic-query>
