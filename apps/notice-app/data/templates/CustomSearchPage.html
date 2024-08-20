@@ -186,10 +186,105 @@
                   {{> Platform:SearchResultsFragments::startButton}}
                   {{> Platform:SearchResultsFragments::clearDomain}}
                 </div>
-                {{> Platform:SearchResultsFragments::searchResultGroupTemplate}}
+                {{> ::custom-searchResultGroupTemplate
+                  showKnowledgePanel=true
+                  showDomainSelector=true
+                  showExplorationFacets=true
+                  showSaveSearchResultActions=false
+                  enableMultiExploreRelated=false
+                }}
               </template>
             </semantic-search-result-group>
           </div>
         </semantic-search>
     </div>  
 </div>
+
+
+<template-fragment export id='custom-searchResultGroupTemplate' params='{
+    "showExplorationFacets": {
+      "required": false,
+      "type":"boolean",
+      "default": true,
+      "description": "If enabled, facets will be shown when exploring all entities of a domain without further search conditions being formulated. Consider to disable this option to improve performance on large datasets with millions of entities."
+    },
+    "showDomainSelector": {
+      "required": false,
+      "type":"boolean",
+      "default": true,
+      "description": "If enabled, the domain selector will be shown in the search results for configured categories."
+    },
+    "showKnowledgePanel": {
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "If enabled, the knowledge panel for a corresponding resource will be shown when clicking on the title of a search result item."
+    },
+    "showSaveSearchResultActions": {
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "If enabled, the search result action \"Save Set\" will be shown when a domain is selected."
+    },
+    "enableMultiExploreRelated": {
+      "required": false,
+      "type": "boolean",
+      "default": "true",
+      "description": "If enabled, search results can be selected to explore results for any of them."
+    }
+  }'>
+    <div class='domainSelectorAndFacets'>
+      {{#if (cond-not hasConjuncts)}}
+        {{#unless (cond-eq showDomainSelector false)}}
+        <semantic-search-query-universal-domain-selector target='{{queryFormulationComponentId}}'></semantic-search-query-universal-domain-selector>
+        {{/unless}}
+      {{/if}}
+      {{#if (cond-or (cond-neq showExplorationFacets false) keyword hasConjuncts)}}
+          <semantic-search-facet-holder>
+            <semantic-search-facet-group 
+              default-settings='{"sorting": "alpha-asc",
+              "headerTemplate": "{{> default-header}}"}'
+              variant='horizontal'>
+              <template id='default-header'>
+                <div class='SemanticSearchFacet--relationHeader croppableHeader'>
+                  {{$relation.label.value}}
+                </div>
+              </template>
+            </semantic-search-facet-group>
+          </semantic-search-facet-holder>
+      {{/if}}
+    </div>
+    <semantic-search-facet-breadcrumbs></semantic-search-facet-breadcrumbs>
+    <semantic-search-result-holder>
+      {{#if domain}}
+        <semantic-search-result domain='{{domain.iri}}'>
+          <div class='resultTemplate'>
+            {{#> @partial-block category=domain selected=true searchKeyword=keyword}}
+              {{> Platform:AppSearchResultsCustomization::custom-defaultResultsTemplate}}
+            {{/@partial-block}}
+          </div>
+        </semantic-search-result>
+        {{#if showSaveSearchResultActions}}
+          {{> ::search-result-save-set-action}}
+        {{/if}} 
+      {{else}}
+        {{#each categories as |category|}}
+          <div class='resultTemplate'>
+            <semantic-search-result domain='{{category.iri}}'>
+              {{#> @partial-block category=category selected=false searchKeyword=../keyword searchId=../searchId queryFormulationComponentId=../queryFormulationComponentId hasConjuncts=../hasConjuncts limit=../limit}}
+                {{> Platform:SearchResultsFragments::defaultResultsTemplate}}
+              {{/@partial-block}}
+            </semantic-search-result>
+          </div>
+        {{/each}}
+      {{/if}}
+    </semantic-search-result-holder>
+  </template-fragment>
+  
+  <template-fragment id='search-result-save-set-action'>
+    <div class='saveSearchAsSet'>
+      <semantic-search-action-save-set-result id='save-set-result-action'>
+        <button class="btn btn-outline-secondary">Save As Set</button>
+      </semantic-search-action-save-set-result>
+    </div>
+  </template-fragment>
