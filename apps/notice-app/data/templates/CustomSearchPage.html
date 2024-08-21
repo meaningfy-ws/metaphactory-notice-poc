@@ -50,7 +50,26 @@
                 $subject <http://data.europa.eu/a4g/ontology#announcesRole>/<http://data.europa.eu/a4g/ontology#playedBy>/<http://data.europa.eu/a4g/ontology#hasLegalName> ?__value__ .
                 "
             }],
-            "<http://metaphacts.com/relation/estimated-value>": [{
+            "<http://metaphacts.com/relation/publication-date>": [{
+                "kind": "date-range",
+                "queryPattern": "
+                $subject <http://data.europa.eu/a4g/ontology#hasPublicationDate> ?_pubDate .
+                BIND(STRDT(CONCAT(SUBSTR(?_pubDate, 1, 4), "-", SUBSTR(?_pubDate, 5, 2), "-", SUBSTR(?_pubDate, 7, 2)), <http://www.w3.org/2001/XMLSchema#date>) AS ?pubDate).
+                FILTER(?pubDate >= ?__dateBeginValue__) .
+                FILTER(?pubDate <= ?__dateEndValue__) .
+                "
+            }],
+            "<http://metaphacts.com/relation/estimated-value-in-eur>": [{
+                "kind": "numeric-range",
+                "queryPattern": "
+                $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasEstimatedValue> ?estimatedValue .
+                ?estimatedValue <http://data.europa.eu/a4g/ontology#hasAmountValue> ?amount ;
+                  <http://data.europa.eu/a4g/ontology#hasCurrency> ?curr .
+                FILTER(?curr = <http://publications.europa.eu/resource/authority/currency/EUR>) .
+                FILTER(?amount >= ?__numericRangeBeginValue__) .
+                FILTER(?amount <= ?__numericRangeEndValue__) .
+                "
+            }],
                 "kind": "text",
                 "queryPattern": "
                 $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasEstimatedValue>/<http://data.europa.eu/a4g/ontology#hasAmountValue> ?__value__ .
@@ -124,16 +143,22 @@
                     "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
                 },
                 {
+                    "iri": "<http://metaphacts.com/relation/publication-date>",
+                    "label": "publication date",
+                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#date>"
+                },
+                {
                     "iri": "<http://data.europa.eu/a4g/ontology#hasDispatchDate>",
                     "label": "dispatch date",
                     "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
                     "hasRange": "<http://www.w3.org/2001/XMLSchema#date>"
                 },
                 {
-                    "iri": "<http://metaphacts.com/relation/publication-date>",
-                    "label": "publication date",
+                    "iri": "<http://metaphacts.com/relation/estimated-value-in-eur>",
+                    "label": "estimated value (€)",
                     "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
-                    "hasRange": "<http://www.w3.org/2001/XMLSchema#date>"
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#double>"
                 },            
                 {
                     "iri": "<http://metaphacts.com/relation/estimated-value>",
