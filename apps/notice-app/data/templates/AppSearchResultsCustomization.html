@@ -52,7 +52,7 @@
             {{#> Platform:SearchResultsCustomization::resultsTemplate}}
               {{#if (isIri subject)}}
                 <div class='SearchCardResult--card'>
-                  {{#if (cond-eq category.iri "http://data.europa.eu/a4g/ontology#Notice")}}
+                  {{#if (cond-or (cond-eq category.iri "http://www.w3.org/ns/org#Organization") (cond-eq category.iri "http://data.europa.eu/a4g/ontology#Notice"))}}
                   <div class='SearchCardResult--contentWrapper'>
                     <div style='display: flex; flex-direction: row'>
                       <div>
@@ -207,6 +207,10 @@
                 ?subject epo:announcesRole ?role .
                   ?role a epo:Buyer ;
                     epo:playedBy ?buyerOrg .
+                OPTIONAL { 
+                  ?buyerOrg epo:hasLegalName ?legalName . 
+                  FILTER LANGMATCHES( lang(?legalName), \"en\" ) 
+                }
                 OPTIONAL { ?buyerOrg epo:hasLegalName ?legalName . }
                 OPTIONAL { ?buyerOrg epo:hasBuyerLegalType ?legalType }
                 OPTIONAL {
@@ -319,6 +323,107 @@
                       {{> Platform:customTemplateFragments::KeyValueRow key="Language" value=langLabel.value }}
                     </p>
                   {{/if}}
+                </div>
+              </div>
+            {{/bind}}
+          {{/each}}
+        </template>
+      </semantic-search-query-universal-entity-info>
+      <semantic-search-query-universal-entity-info for='["http://www.w3.org/ns/org#Organization"]' 
+        visualization='{
+          "disambiguation": {
+            "query": "
+              PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+              SELECT DISTINCT (SAMPLE(?_name) as ?name) WHERE {
+                ?subject epo:hasLegalName ?_name.
+                FILTER (!isBlank(?name))
+              }",
+            "template": "{{> disambiguationTemplate}}"
+          },
+          "results": {
+            "query": "
+            PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+            PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+            PREFIX cccev: <http://data.europa.eu/m8g/> 
+            PREFIX legal: <https://www.w3.org/ns/legal#>
+            PREFIX locn: <http://www.w3.org/ns/locn#>
+            PREFIX org: <http://www.w3.org/ns/org#> 
+
+            PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+                
+            SELECT DISTINCT
+                ?subject
+                ?legalName
+                ?mainActivity
+                ?mainActivityLabel
+                ?fullAddress
+                ?postName
+                ?postCode
+                ?thoroughfare
+                ?hasCountryCode
+                ?countryCodeLabel
+            WHERE {
+                ?subject a ?type .
+                FILTER(?type in (
+                    cccev:Organization,
+                    org:Organization
+                )) .
+                OPTIONAL { ?subject epo:hasLegalName ?legalName }
+                OPTIONAL {
+                    ?subject epo:hasMainActivity ?mainActivity
+                    SERVICE Service:label {
+                        ?mainActivity mplabel:label ?mainActivityLabel ;
+                        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                    }
+                }
+                OPTIONAL {
+                    ?subject cccev:registeredAddress|legal:registeredAddress ?addr
+                    OPTIONAL {
+                        ?addr epo:hasCountryCode ?hasCountryCode
+                        SERVICE Service:label {
+                            ?hasCountryCode mplabel:label ?countryCodeLabel ;
+                            
+                        }
+                    }
+                    OPTIONAL { ?addr epo:hasNutsCode ?hasNutsCode }
+                    OPTIONAL { ?addr locn:postName ?postName }
+                    OPTIONAL { ?addr locn:postCode ?postCode }
+                    OPTIONAL { ?addr locn:fullAddress ?fullAddress }
+                    OPTIONAL { ?addr locn:thoroughfare ?thoroughfare }
+                }
+            }",
+            "template": "{{> resultsTemplate}}"
+          }
+        }'>
+        <template id="disambiguationTemplate">
+          <span class="separator"></span>
+          {{#each bindings}}{{description.value}}{{/each}}
+        </template>
+        <template id="resultsTemplate">
+          {{log "bindings" bindings }}
+          {{#each bindings}}
+          {{#bind key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true }}
+              {{#if legalName}}
+                <p style="color: rgb(20, 2, 84); font-size: 1.1em">{{legalName.value}}</p>
+              {{/if}}
+              {{#if fullAddress}}
+                <p style="color: rgb(30, 30, 31); font-size: 0.9em">{{fullAddress.value}}</p>
+              {{else}}
+              {{log thoroughfare.value postName.value countryCodeLabel.value}}
+                <p style="color: rgb(30, 30, 31); font-size: 0.9em">
+                  {{#if thoroughfare}}{{thoroughfare.value}}, {{/if}}
+                  {{#if postName}}{{postName.value}}, {{/if}}
+                  {{#if countryCodeLabel}}{{countryCodeLabel.value}}{{/if}}
+                </p>
+              {{/if}}
+              <div style='display: flex; flex-direction: row;' >
+                <div>
+                  <p class='small'>
+                    {{#if mainActivity}}
+                      {{> Platform:customTemplateFragments::KeyValueRow key="Main activity" iri=mainActivity.value label=mainActivityLabel.value }}
+                    {{/if}}
+                  </p>
                 </div>
               </div>
             {{/bind}}
