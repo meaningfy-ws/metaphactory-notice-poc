@@ -70,7 +70,7 @@
       WHERE {
       BIND ({{orgAddress}} as ?addr)
       OPTIONAL {
-      ?addr epo:hasNutsCode ?nuts .
+        ?addr epo:hasNutsCode ?nuts .
         VALUES (?locationStmtWikiProp ?locationWikiProp) { (ps:P605 p:P605) }
       }
       OPTIONAL {
@@ -87,13 +87,13 @@
         ?location ?locationWikiProp ?s .
         ?location p:P625 ?coordinate.
         ?location rdfs:label ?description .
-          FILTER(lang(?description) = "en") .
-          ?coordinate ps:P625 ?coord.
-          ?coordinate psv:P625 ?coordinate_node.
-          ?coordinate_node wikibase:geoLongitude ?lng.
-          ?coordinate_node wikibase:geoLatitude ?lat.  
+        FILTER(lang(?description) = "en") .
+        ?coordinate ps:P625 ?coord.
+        ?coordinate psv:P625 ?coordinate_node.
+        ?coordinate_node wikibase:geoLongitude ?lng.
+        ?coordinate_node wikibase:geoLatitude ?lat.  
       } ephedra:Prior ephedra:executeLast true .
-      }'
+    }'
     fix-zoom-level='6'
     tuple-template='<b>{{description.value}}</b><br><a href="https://wikidata.metaphacts.com/resource/?uri={{link.value}}" target="_blank">Open in wikidata</a>'>
   </semantic-map>
@@ -275,9 +275,9 @@
 
 
 <!-- params:
-  org
+  contactPoint
 -->
-<template-fragment id="tf-primary-contact-point">
+<template-fragment id="tf-contact-point">
   <semantic-query query="
     PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
     PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
@@ -297,8 +297,7 @@
       ?email
       ?telephone
     WHERE {
-      BIND ({{org}} as ?org) .
-      ?org epo:hasPrimaryContactPoint ?cp .
+      BIND ({{contactPoint}} as ?cp) .
       
       OPTIONAL { ?cp locn:address ?address }
       OPTIONAL { ?cp epo:hasInternetAddress ?hasInternetAddress }
@@ -361,10 +360,12 @@
           SELECT DISTINCT
             ?notice
             ?noticeLabel
+            ?contactPointInRole
           WHERE {
             ?role a {{roleType}} ;
               epo:playedBy {{org}} .
-            ?notice epo:announcesRole ?role .
+              ?notice epo:announcesRole ?role .
+            OPTIONAL { ?role epo:hasContactPointInRole ?contactPointInRole } .
             SERVICE Service:label {
               ?notice mplabel:label ?noticeLabel ;
               mplabel:preferredLanguage ?__userPreferredLanguage__ .
@@ -375,6 +376,12 @@
             <div style="padding-left: 16px;">
               {{#each bindings}}
                 {{> Platform:customTemplateFragments::IriWithKnowledgePanelView iri=notice.value label=noticeLabel.value }}
+                {{#if contactPointInRole}}
+                  <div class="section" style="background-color: #fbfbfb; margin-left: 12px">
+                    <h5>Contact point in role</h5>
+                    {{> ::tf-contact-point contactPoint=contactPointInRole}}
+                  </div>
+                {{/if}}
               {{/each}}
             </div>
           </template>
@@ -399,7 +406,7 @@
       <p><a href='#overview'><b>Overview</b></a></p>
       {{#if orgAddress}}<p><a href='#location'><b>Location</b></a></p>{{/if}}
       {{#if orgAddress}}<p><a href='#address'><b>Address</b></a></p>{{/if}}
-      {{#if (cond-eq hasPrimaryContactPoint.value "true")}}<p><a href='#primary-contact-point'><b>Primary contact point</b></a></p>{{/if}}
+      {{#if hasPrimaryContactPoint}}<p><a href='#primary-contact-point'><b>Primary contact point</b></a></p>{{/if}}
       {{#if (cond-eq hasLinkedNotices.value "true")}}<p><a href='#associated-notices'><b>Associated notices</b></a></p>{{/if}}
     </div>
     <div class='main-content'>
@@ -416,12 +423,14 @@
           </bs-row>
         {{/if}}
       </div>
-      <div class="section">
+      {{#if hasPrimaryContactPoint}}
+        <div class="section">
           <h1 id="primary-contact-point">Primary contact point</h1>
           <div style="margin-left: 3px; margin-top: 10px;">
-            {{> ::tf-primary-contact-point }}
+            {{> ::tf-contact-point contactPoint=hasPrimaryContactPoint}}
           </div>
-      </div>
+        </div>
+      {{/if}}
       {{#if (cond-eq hasLinkedNotices.value "true")}}
         <div class="section">
             <h1 id="primary-contact-point">Associated notices by role</h1>
@@ -459,8 +468,12 @@
               org:Organization,
               epo:Business
           )) .
+          OPTIONAL { 
+            ?org epo:hasLegalName ?legalName . 
+            FILTER LANGMATCHES( lang(?legalName), 'en') 
+          }
           OPTIONAL { ?org epo:hasLegalName ?legalName }
-          BIND(EXISTS { ?org epo:hasPrimaryContactPoint ?_ } as ?hasPrimaryContactPoint)    
+          OPTIONAL { ?org epo:hasPrimaryContactPoint ?hasPrimaryContactPoint }
           BIND(EXISTS { ?org ^epo:playedBy/^epo:announcesRole ?_ } as ?hasLinkedNotices)    
           OPTIONAL {
               ?org cccev:registeredAddress|legal:registeredAddress ?orgAddress
