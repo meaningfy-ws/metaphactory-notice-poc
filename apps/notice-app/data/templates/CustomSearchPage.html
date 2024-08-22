@@ -54,7 +54,7 @@
                 "kind": "date-range",
                 "queryPattern": "
                 $subject <http://data.europa.eu/a4g/ontology#hasPublicationDate> ?_pubDate .
-                BIND(STRDT(CONCAT(SUBSTR(?_pubDate, 1, 4), "-", SUBSTR(?_pubDate, 5, 2), "-", SUBSTR(?_pubDate, 7, 2)), <http://www.w3.org/2001/XMLSchema#date>) AS ?pubDate).
+                BIND(STRDT(CONCAT(SUBSTR(?_pubDate, 1, 4), \"-\", SUBSTR(?_pubDate, 5, 2), \"-\", SUBSTR(?_pubDate, 7, 2)), <http://www.w3.org/2001/XMLSchema#date>) AS ?pubDate).
                 FILTER(?pubDate >= ?__dateBeginValue__) .
                 FILTER(?pubDate <= ?__dateEndValue__) .
                 "
@@ -70,9 +70,28 @@
                 FILTER(?amount <= ?__numericRangeEndValue__) .
                 "
             }],
+            "<http://metaphacts.com/relation/country-code>": [{
+                "kind": "resource",
+                "queryPattern": "
+                $subject <http://data.europa.eu/m8g/registeredAddress>/<http://data.europa.eu/a4g/ontology#hasCountryCode> ?__value__ .
+                "
+            }],
+            "<http://metaphacts.com/relation/nuts-code>": [{
+                "kind": "resource",
+                "queryPattern": "
+                $subject <http://data.europa.eu/m8g/registeredAddress>/<http://data.europa.eu/a4g/ontology#hasNutsCode> ?__value__ .
+                "
+            }],
+            "<http://metaphacts.com/relation/post-code>": [{
                 "kind": "text",
                 "queryPattern": "
-                $subject (<http://data.europa.eu/a4g/ontology#refersToProcedure>|<http://data.europa.eu/a4g/ontology#announcesProcedure>)/<http://data.europa.eu/a4g/ontology#hasEstimatedValue>/<http://data.europa.eu/a4g/ontology#hasAmountValue> ?__value__ .
+                $subject <http://data.europa.eu/m8g/registeredAddress>/<http://www.w3.org/ns/locn#postCode> ?__value__ .
+                "
+            }],
+            "<http://metaphacts.com/relation/post-name>": [{
+                "kind": "text",
+                "queryPattern": "
+                $subject <http://data.europa.eu/m8g/registeredAddress>/<http://www.w3.org/ns/locn#postCode> ?__value__ .
                 "
             }]
         }'
@@ -86,11 +105,16 @@
                 {
                     "iri": "<http://data.europa.eu/a4g/ontology#Organization>",
                     "label": "Organization",
-                    "includeAsDomain": true
+                    "includeAsDomain": false
                 },
                 {
                     "iri": "<http://www.w3.org/ns/org#Organization>",
-                    "label": "organization",
+                    "label": "Organization",
+                    "includeAsDomain": true
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/estimated-value-in-eur>",
+                    "label": "estimated value (€)",
                     "includeAsDomain": false
                 },
                 {
@@ -147,7 +171,7 @@
                     "label": "publication date",
                     "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
                     "hasRange": "<http://www.w3.org/2001/XMLSchema#date>"
-                },
+                },            
                 {
                     "iri": "<http://data.europa.eu/a4g/ontology#hasDispatchDate>",
                     "label": "dispatch date",
@@ -159,13 +183,43 @@
                     "label": "estimated value (€)",
                     "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
                     "hasRange": "<http://www.w3.org/2001/XMLSchema#double>"
-                },            
+                },
                 {
-                    "iri": "<http://metaphacts.com/relation/estimated-value>",
-                    "label": "estimated value",
-                    "hasDomain": "<http://data.europa.eu/a4g/ontology#Notice>",
-                    "hasRange": "<http://www.w3.org/2001/XMLSchema#integer>"
-                }            
+                    "iri": "<http://data.europa.eu/a4g/ontology#hasMainActivity>",
+                    "label": "main activity",
+                    "hasDomain": "<http://www.w3.org/ns/org#Organization>",
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#string>"
+                },
+                {
+                    "iri": "<http://data.europa.eu/a4g/ontology#hasBuyerLegalType>",
+                    "label": "buyer legal type",
+                    "hasDomain": "<http://www.w3.org/ns/org#Organization>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/country-code>",
+                    "label": "country code",
+                    "hasDomain": "<http://www.w3.org/ns/org#Organization>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/nuts-code>",
+                    "label": "NUTS type",
+                    "hasDomain": "<http://www.w3.org/ns/org#Organization>",
+                    "hasRange": "<http://www.w3.org/2004/02/skos/core#Concept>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/post-code>",
+                    "label": "post type",
+                    "hasDomain": "<http://www.w3.org/ns/org#Organization>",
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#string>"
+                },
+                {
+                    "iri": "<http://metaphacts.com/relation/post-name>",
+                    "label": "post name",
+                    "hasDomain": "<http://www.w3.org/ns/org#Organization>",
+                    "hasRange": "<http://www.w3.org/2001/XMLSchema#string>"
+                }
             ]
         }'
         categories='{
@@ -272,7 +326,15 @@
               variant='horizontal'>
               <template id='default-header'>
                 <div class='SemanticSearchFacet--relationHeader croppableHeader'>
-                  {{$relation.label.value}}
+                  {{#if (cond-eq $relation.label.value "estimated value (€)")}}
+                    {{$relation.label.value}}&nbsp;<span 
+                    class="material-symbols-outlined" 
+                    style="color: rgb(177, 177, 179); padding-left: 3px; font-size: 0.9em; vertical-align: -0.2em; display: inline !important"
+                    title="only values expressed in € currency are included in this filter"
+                >help</span>
+                  {{else}}
+                    {{$relation.label.value}}
+                  {{/if}}
                 </div>
               </template>
             </semantic-search-facet-group>
