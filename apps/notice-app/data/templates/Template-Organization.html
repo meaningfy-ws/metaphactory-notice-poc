@@ -1,0 +1,142 @@
+<style>
+  .navigationSidebar {
+    width: 310px;
+    margin-left: 5px;
+    margin-top: 8px;
+    border: 1px solid var(--mp-color-primary-100);
+    z-index: 100;
+    position: sticky;
+    top: 70px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    line-height: 2.5em;
+  }
+  .custom-page-header {
+      padding: 16px 64px 16px 78px;
+    background-color: var(--mp-color-dark-50);
+    align-items: start;
+  }
+  .custom-page-content {
+    display: flex;
+    align-items: start;
+  }
+  .main-content {
+    padding: 6px 96px 8px 24px;
+    width: 100%;
+    border-top: 1px solid var(--mp-color-primary-100);
+  }
+  .wide-card {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .content-comment {
+    font-style: italic;
+  }
+  .no-content-comment {
+    font-style: italic;
+    color: gray;
+  }
+  .indent-l1 {
+    padding-left: 8px;
+  }
+  .section {
+    background-color: rgb(252, 249, 253);
+    margin: 4px;
+    border: 1px solid var(--mp-color-primary-100);
+    padding: 8px 24px 8px 16px;
+  }
+</style>
+
+
+<!-- ------------------------------Page structure ------------------------  -->
+<template-fragment id="tf-page">
+  <div id='overview' class='custom-page-header'>
+    <div>
+      <h1>{{#if legalName}}{{legalName.value}}{{else}}Organization{{/if}}</h1>
+    </div>
+    <div>
+      {{> ::tf-overview}}
+    </div>
+  </div>
+  <div class="custom-page-content">
+    <div id='page-nav' class='navigationSidebar'>
+      <p><a href='#overview'><b>Overview</b></a></p>
+      {{#if orgAddress}}<p><a href='#location'><b>Location</b></a></p>{{/if}}
+      {{#if orgAddress}}<p><a href='#address'><b>Address</b></a></p>{{/if}}
+      {{#if (cond-eq hasPrimaryContactPoint.value "true")}}<p><a href='#primary-contact-point'><b>Primary contact point</b></a></p>{{/if}}
+      {{#if (cond-eq hasLinkedNotices.value "true")}}<p><a href='#associated-notices'><b>Associated notices</b></a></p>{{/if}}
+    </div>
+    <div class='main-content'>
+      <div class="section">
+        {{#if orgAddress}}
+          <h1 id="location">Location</h1>
+          <bs-row>
+            <bs-col sm-offset="0" sm="6">
+              {{> ::tf-org-address}}
+            </bs-col>
+            <bs-col sm-offset="0" sm="6">
+              {{> ::tf-org-location-map}}
+            </bs-col>
+          </bs-row>
+        {{/if}}
+      </div>
+      <div class="section">
+          <h1 id="primary-contact-point">Primary contact point</h1>
+          <div style="margin-left: 3px; margin-top: 10px;">
+            {{> ::tf-primary-contact-point }}
+          </div>
+      </div>
+      {{#if (cond-eq hasLinkedNotices.value "true")}}
+        <div class="section">
+            <h1 id="primary-contact-point">Associated notices by role</h1>
+            <div style="margin-left: 3px; margin-top: 10px;">
+              {{> ::tf-notices-by-role }}
+            </div>
+        </div>
+      {{/if}}
+    </div> 
+  </div>
+</template-fragment>
+
+<!-- ------------------------------Page body ------------------------  -->
+<div class="page">
+  <semantic-query id="org-structure-checks"
+    query="
+      PREFIX cccev: <http://data.europa.eu/m8g/> 
+      PREFIX legal: <https://www.w3.org/ns/legal#>
+      PREFIX org: <http://www.w3.org/ns/org#> 
+      
+      PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+          
+      SELECT DISTINCT
+          ?org
+          ?legalName
+          ?orgAddress
+          ?hasPrimaryContactPoint
+          ?hasLinkedNotices
+          ?nuts
+      WHERE {
+          BIND(<{{page-resource}}> as ?org)
+          ?org a ?type .
+          FILTER(?type in (
+              cccev:Organization,
+              org:Organization,
+              epo:Business
+          )) .
+          OPTIONAL { ?org epo:hasLegalName ?legalName }
+          BIND(EXISTS { ?org epo:hasPrimaryContactPoint ?_ } as ?hasPrimaryContactPoint)    
+          BIND(EXISTS { ?org ^epo:playedBy/^epo:announcesRole ?_ } as ?hasLinkedNotices)    
+          OPTIONAL {
+              ?org cccev:registeredAddress|legal:registeredAddress ?orgAddress
+          }
+          OPTIONAL { ?orgAddress epo:hasNutsCode ?nuts . }
+      }"
+    template='{{>tpl }}'>
+    <template id='tpl'>
+      {{#each bindings}}
+        {{> ::tf-page}}
+      {{/each}}
+    </template>
+  </semantic-query>
+</div>
