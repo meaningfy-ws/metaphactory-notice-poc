@@ -48,6 +48,51 @@
   }
 </style>
 
+<!-- params:
+  orgAddress: Address
+-->
+<template-fragment id="tf-org-location-map">
+  {{log orgAddress}}
+  <semantic-map 
+    query='
+      PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+      PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+      PREFIX bd: <http://www.bigdata.com/rdf#>
+      PREFIX p: <http://www.wikidata.org/prop/>
+      PREFIX ps: <http://www.wikidata.org/prop/statement/>
+      PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+      PREFIX wikibase: <http://wikiba.se/ontology#>
+
+      PREFIX epo: <http://data.europa.eu/a4g/ontology#>
+
+      SELECT DISTINCT ?lat ?lng ?description (?place AS ?link)
+      WHERE {
+      BIND ({{orgAddress}} as ?addr)
+      ?addr epo:hasNutsCode ?nuts .
+      SERVICE Service:label {
+        ?nuts mplabel:label ?nutsCode ;
+        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+
+      SERVICE <https://query.wikidata.org/sparql> {            
+          ?s ps:P605 ?nutsCode .
+          ?place p:P605 ?s .
+          ?place p:P625 ?coordinate.
+          ?place rdfs:label ?description .
+          FILTER(lang(?description) = "en") .
+          ?coordinate ps:P625 ?coord.
+          ?coordinate psv:P625 ?coordinate_node.
+          ?coordinate_node wikibase:geoLongitude ?lng.
+          ?coordinate_node wikibase:geoLatitude ?lat.  
+          
+      } ephedra:Prior ephedra:executeLast true .
+      }'
+    fix-zoom-level='6'
+    tuple-template='<b>{{description.value}}</b><br><a href="https://wikidata.metaphacts.com/resource/?uri={{link.value}}" target="_blank">Open in wikidata</a>'>
+  </semantic-map>
+</template-fragment>
+
 
 <!-- ------------------------------Page structure ------------------------  -->
 <template-fragment id="tf-page">

@@ -1,0 +1,5 @@
+dbo = http://dbpedia.org/ontology/
+schema = http://schema.org/
+wdt = http://www.wikidata.org/prop/direct/
+wd = http://www.wikidata.org/entity/
+wiki = https://wikidata.metaphacts.com/
