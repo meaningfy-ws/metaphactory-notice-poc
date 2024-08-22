@@ -93,6 +93,290 @@
   </semantic-map>
 </template-fragment>
 
+<!-- params:
+  org
+-->
+<template-fragment id="tf-overview">
+  <semantic-query query="
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX legal: <https://www.w3.org/ns/legal#>
+    PREFIX locn: <http://www.w3.org/ns/locn#>
+    PREFIX org: <http://www.w3.org/ns/org#> 
+
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        
+    SELECT DISTINCT
+        ?org
+        ?mainActivity
+        ?mainActivityLabel
+        ?hasMainActivityDescription
+        ?hasBuyerLegalTypeDescription
+        ?hasLegalFormType
+        ?hasBuyerLegalType
+        ?hasBuyerLegalTypeLabel
+        ?hasRegistrationCountry
+        ?hasRegistrationCountryLabel
+        ?hasLegalIdentifier
+        ?hasTaxIdentifier
+        ?subOrganizationOf
+        ?isListedCompany
+        ?hasBusinessSize
+        ?hasBusinessSizeLabel
+        ?hasBeneficialOwner
+    WHERE {
+        BIND ({{org}} as ?organization)        
+        OPTIONAL { ?organization epo:hasBuyerLegalTypeDescription ?hasBuyerLegalTypeDescription }
+        OPTIONAL { ?organization epo:hasLegalFormType ?hasLegalFormType }
+        OPTIONAL { ?organization epo:hasMainActivityDescription ?hasMainActivityDescription }
+        OPTIONAL { ?organization epo:hasPrimaryContactPoint ?hasPrimaryContactPoint }
+        OPTIONAL {
+          ?organization epo:hasBuyerLegalType ?hasBuyerLegalType
+          SERVICE Service:label {
+            ?hasBuyerLegalType mplabel:label ?hasBuyerLegalTypeLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+          }
+        }
+        OPTIONAL {
+          ?organization epo:hasMainActivity ?mainActivity
+          SERVICE Service:label {
+              ?mainActivity mplabel:label ?mainActivityLabel ;
+              mplabel:preferredLanguage ?__userPreferredLanguage__ .
+          }
+        }
+        OPTIONAL {
+          ?organization epo:hasRegistrationCountry ?hasRegistrationCountry
+          SERVICE Service:label {
+              ?hasRegistrationCountry mplabel:label ?hasRegistrationCountryLabel ;
+              mplabel:preferredLanguage ?__userPreferredLanguage__ .
+          }
+        }
+        OPTIONAL { ?organization epo:hasLegalIdentifier [ skos:notation ?hasLegalIdentifier ] }
+        OPTIONAL { ?organization epo:hasTaxIdentifier ?hasTaxIdentifier }
+        OPTIONAL { ?organization org:subOrganizationOf ?subOrganizationOf }
+        OPTIONAL { ?organization epo:isListedCompany ?isListedCompany }
+        OPTIONAL {
+          ?organization epo:hasBusinessSize ?hasBusinessSize
+          SERVICE Service:label {
+            ?hasBusinessSize mplabel:label ?hasBusinessSizeLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+          }
+        }
+        OPTIONAL { ?organization epo:hasBeneficialOwner ?hasBeneficialOwner }
+      }"
+    template='{{>tpl }}'>
+    <template id='tpl'>
+      {{#each bindings}}
+        {{#bind hide-if-undef=true}}      
+          {{> Platform:customTemplateFragments::KeyIriRow iri=mainActivity.value key="Main activity" label=mainActivityLabel.value}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasMainActivityDescription.value key="Main activity description" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasLegalFormType.value key="Legal form type" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasBuyerLegalTypeDescription.value key="Buyer legal type description" }}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBuyerLegalType.value key="Buyer legal type" label=hasBuyerLegalTypeLabel.value}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasRegistrationCountry.value label=hasRegistrationCountryLabel.value key="Registration country" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasLegalIdentifier.value key="Legal identifier" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=isListedCompany.value key="Is listed company" }}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBusinessSize.value label=hasBusinessSizeLabel.value key="Business size" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasBeneficialOwner.value key="Beneficial owner" }}
+        {{/bind}}
+       
+      {{/each}}
+    </template>
+  </semantic-query>
+</template-fragment>
+
+<!-- params:
+  orgAddress
+-->
+<template-fragment id="tf-org-address">
+  <semantic-query query="
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX legal: <https://www.w3.org/ns/legal#>
+    PREFIX locn: <http://www.w3.org/ns/locn#>
+    PREFIX org: <http://www.w3.org/ns/org#> 
+
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        
+    SELECT DISTINCT
+        ?hasCountryCode
+        ?hasCountryCodeLabel
+        ?hasNutsCode
+        ?hasNutsCodeLabel
+        ?postCode
+        ?fullAddress
+        ?postName
+        ?addressArea
+        ?locatorName
+        ?adminUnitL2
+        ?locatorDesignator
+        ?adminUnitL1
+        ?thoroughfare
+        ?addressID
+    WHERE {
+        BIND ({{orgAddress}} as ?addr)
+        OPTIONAL {
+          ?addr epo:hasCountryCode ?hasCountryCode
+          SERVICE Service:label {
+            ?hasCountryCode mplabel:label ?hasCountryCodeLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+          }
+        }
+        OPTIONAL { 
+          ?addr epo:hasNutsCode ?hasNutsCode
+          SERVICE Service:label {
+            ?hasNutsCode mplabel:label ?hasNutsCodeLabel ;
+            mplabel:preferredLanguage ?__userPreferredLanguage__ .
+          }
+        }
+        OPTIONAL { ?addr locn:postName ?postName }
+        OPTIONAL { ?addr locn:postCode ?postCode }
+        OPTIONAL { ?addr locn:addressArea ?addressArea }
+        OPTIONAL { ?addr locn:locatorName ?locatorName }
+        OPTIONAL { ?addr locn:adminUnitL2 ?adminUnitL2 }
+        OPTIONAL { ?addr locn:fullAddress ?fullAddress }
+        OPTIONAL { ?addr locn:locatorDesignator ?locatorDesignator }
+        OPTIONAL { ?addr locn:adminUnitL1 ?adminUnitL1 }
+        OPTIONAL { ?addr locn:thoroughfare ?thoroughfare }
+        OPTIONAL { ?addr locn:addressID ?addressID }
+    }"
+    template='{{>tpl }}'>
+    <template id='tpl'>
+      {{#each bindings}}
+        {{#bind hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasCountryCode.value label=hasCountryCodeLabel.value key="country code"}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasNutsCode.value label=hasNutsCodeLabel.value key="NUTS code"}}
+          
+          {{> Platform:customTemplateFragments::KeyValueRow key="Full address" value=fullAddress.value hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=postName.value key="Post name" }}
+          {{> Platform:customTemplateFragments::KeyValueRow key="Post code" value=postCode.value hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=thoroughfare.value key="Thoroughfare" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=addressArea.value key="Address area" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=locatorName.value key="Locator name" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=adminUnitL1.value key="Admin unit L1" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=adminUnitL2.value key="Admin unit L2" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=locatorDesignator.value key="Locator designator" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=addressID.value key="Address ID" }}
+        {{/bind}}
+      {{/each}}
+    </template>
+  </semantic-query>
+</template-fragment>
+
+
+<!-- params:
+  org
+-->
+<template-fragment id="tf-primary-contact-point">
+  <semantic-query query="
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX legal: <https://www.w3.org/ns/legal#>
+    PREFIX locn: <http://www.w3.org/ns/locn#>
+    PREFIX org: <http://www.w3.org/ns/org#> 
+
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        
+    SELECT DISTINCT
+      ?address
+      ?hasInternetAddress
+      ?hasContactName
+      ?hasFax
+      ?email
+      ?telephone
+    WHERE {
+      BIND ({{org}} as ?org) .
+      ?org epo:hasPrimaryContactPoint ?cp .
+      
+      OPTIONAL { ?cp locn:address ?address }
+      OPTIONAL { ?cp epo:hasInternetAddress ?hasInternetAddress }
+      OPTIONAL { ?cp epo:hasContactName ?hasContactName }
+      OPTIONAL { ?cp epo:hasFax ?hasFax }
+      OPTIONAL { ?cp cccev:email ?email }
+      OPTIONAL { ?cp cccev:telephone ?telephone }
+    }"
+    template='{{>tpl }}'>
+    <template id='tpl'>
+      {{#each bindings}}
+        {{#bind hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasContactName.value key="Contact name" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=address.value key="Address" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=telephone.value key="Telephone" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=email.value key="Email" }}
+          {{> Platform:customTemplateFragments::KeyValueRow value=hasFax.value key="Fax" }}
+          {{> Platform:customTemplateFragments::KeyLinkRow iri=hasInternetAddress key="Internet address"}}
+        {{/bind}}
+      {{/each}}
+    </template>
+  </semantic-query>
+</template-fragment>
+
+<!-- params:
+  org
+-->
+<template-fragment id="tf-notices-by-role">
+  <semantic-query query="
+    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX legal: <https://www.w3.org/ns/legal#>
+    PREFIX locn: <http://www.w3.org/ns/locn#>
+    PREFIX org: <http://www.w3.org/ns/org#> 
+
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+        
+    SELECT ?org ?roleType ?roleTypeLabel (COUNT(?role) as ?occurences)
+    WHERE {
+      BIND ({{org}} as ?org) .
+      ?role epo:playedBy ?org ;
+        a ?roleType .
+      SERVICE Service:label {
+        ?roleType mplabel:label ?roleTypeLabel ;
+        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+      }
+    }
+    GROUP BY ?org ?roleType ?roleTypeLabel"
+    template='{{>tpl }}'>
+    <template id='tpl'>
+      {{#each bindings}}
+        <h4>{{roleTypeLabel.value}}</h4>
+        <semantic-query query="
+          PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+          PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+          PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+          SELECT DISTINCT
+            ?notice
+            ?noticeLabel
+          WHERE {
+            ?role a {{roleType}} ;
+              epo:playedBy {{org}} .
+            ?notice epo:announcesRole ?role .
+            SERVICE Service:label {
+              ?notice mplabel:label ?noticeLabel ;
+              mplabel:preferredLanguage ?__userPreferredLanguage__ .
+            }
+          }"
+          template='{{>tpl }}'>
+          <template id='tpl'>
+            <div style="padding-left: 16px;">
+              {{#each bindings}}
+                {{> Platform:customTemplateFragments::IriWithKnowledgePanelView iri=notice.value label=noticeLabel.value }}
+              {{/each}}
+            </div>
+          </template>
+        </semantic-query>
+      {{/each}}
+    </template>
+  </semantic-query>
+</template-fragment>
 
 <!-- ------------------------------Page structure ------------------------  -->
 <template-fragment id="tf-page">
