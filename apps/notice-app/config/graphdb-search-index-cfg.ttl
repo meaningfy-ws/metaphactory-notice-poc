@@ -1,0 +1,138 @@
+# https://help.metaphacts.com/resource/Help:SearchIndexes#graphdb-connector-definition-example
+##################################################
+# Single Index for Entity Lookup and Keyword Search
+#-  adding a field for the type for type-pushdown
+# - adding a single name field (name$label -> rdfs:label, name$prefLabel -> skos:prefLabel) for named entity lookup
+# - indexing of all string literals for all types with any language tags (also without)
+##################################################
+
+PREFIX con: <http://www.ontotext.com/connectors/lucene#>
+PREFIX con-inst: <http://www.ontotext.com/connectors/lucene/instance#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+INSERT DATA {
+    con-inst:lookup-and-keyword con:createConnector '''
+    {
+      "fields": [
+        {
+          "fieldName": "type",
+          "propertyChain": [
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+          ],
+          "stored": false,
+          "multivalued": true,
+          "facet": false,
+          "ignoreInvalidValues": true,
+        },
+        {
+          "fieldName": "procedure$1",
+          "propertyChain": [
+            "http://data.europa.eu/a4g/ontology#refersToProcedure",
+            "$literal"
+          ],
+          "indexed": true,
+          "stored": true,
+          "analyzed": true,
+          "multivalued": true,
+          "ignoreInvalidValues": false,
+          "facet": true
+        },
+        {
+          "fieldName": "procedure$2",
+          "propertyChain": [
+            "http://data.europa.eu/a4g/ontology#announcesProcedure",
+            "$literal"
+          ],
+          "indexed": true,
+          "stored": true,
+          "analyzed": true,
+          "multivalued": true,
+          "ignoreInvalidValues": false,
+          "facet": true
+        },
+        {
+          "fieldName": "role",
+          "propertyChain": [
+            "http://data.europa.eu/a4g/ontology#announcesRole",
+            "http://data.europa.eu/a4g/ontology#playedBy",
+            "http://data.europa.eu/a4g/ontology#hasContactPointInRole",
+            "$literal"
+          ],
+          "indexed": true,
+          "stored": true,
+          "analyzed": true,
+          "multivalued": true,
+          "ignoreInvalidValues": false,
+          "facet": true
+        },
+        {
+          "fieldName": "org$1",
+          "propertyChain": [
+            "http://data.europa.eu/a4g/ontology#announcesRole",
+            "http://data.europa.eu/a4g/ontology#playedBy",
+            "$literal"
+          ],
+          "indexed": true,
+          "stored": true,
+          "analyzed": true,
+          "multivalued": true,
+          "ignoreInvalidValues": false,
+          "facet": true
+        },
+        {
+          "fieldName": "org$2",
+          "propertyChain": [
+            "http://data.europa.eu/a4g/ontology#announcesRole",
+            "http://data.europa.eu/a4g/ontology#playedBy",
+            "http://data.europa.eu/m8g/registeredAddress",
+            "$literal"
+          ],
+          "indexed": true,
+          "stored": true,
+          "analyzed": true,
+          "multivalued": true,
+          "ignoreInvalidValues": false,
+          "facet": true
+        },
+        {
+          "fieldName": "lot",
+          "propertyChain": [
+            "http://data.europa.eu/a4g/ontology#refersToLot",
+            "$literal"
+          ],
+          "indexed": true,
+          "stored": true,
+          "analyzed": true,
+          "multivalued": true,
+          "ignoreInvalidValues": false,
+          "facet": true
+        },
+        {
+          "fieldName": "name$prefLabel",
+          "propertyChain": [
+            "http://www.w3.org/2004/02/skos/core#prefLabel"
+          ],
+          "indexed": true,
+          "stored": true,
+          "analyzed": true,
+          "multivalued": true,
+          "ignoreInvalidValues": false,
+          "facet": true
+        },
+        {
+          "fieldName": "allLiterals",
+          "propertyChain": [
+            "$literal"
+          ],
+          "datatype": "xsd:string",
+          "facet": false,
+          "indexed": true,
+          "ignoreInvalidValues": true,
+        }
+      ],
+      "types": [
+        "$any"
+      ]
+    }
+''' .
+}

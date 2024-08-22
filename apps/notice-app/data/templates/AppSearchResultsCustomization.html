@@ -1,0 +1,616 @@
+<template-fragment export id='custom-defaultResultsTemplate'>
+    <div class="custom-defaultResultsTemplate">
+        <mp-event-combine listen-events='[
+        {"property": "selectEntityCheckbox", "source": "selectEntityCheckbox"},
+        {"property": "unselectedEntity", "source": "unselectEntityButton"}
+        ]' trigger-template='{{> t}}'>
+        <template id='t'>
+          {{#if (cond-eq cause "selectEntityCheckbox")}}
+            {{#if state.selectEntityCheckbox.checked}}
+              <mp-event-combine-set
+                property='selectedEntities'
+                value='{{pass-value (array-concat (if state.selectedEntities state.selectedEntities (array-of)) (array-of state.selectEntityCheckbox.iri))}}'>
+              </mp-event-combine-set>
+            {{else}}
+              <mp-event-combine-set
+                property='selectedEntities'
+                value='{{pass-value (array-filter state.selectedEntities (func topic (cond-neq topic state.selectEntityCheckbox.iri)))}}'>
+              </mp-event-combine-set>
+            {{/if}}
+          {{/if}}
+  
+          {{#if (cond-eq cause "unselectedEntity")}}
+            <mp-event-combine-set
+              property='selectedEntities'
+              value='{{pass-value (array-filter state.selectedEntities (func topic (cond-neq topic state.unselectedEntity.iri)))}}'>
+            </mp-event-combine-set>
+            <mp-event-combine-emit
+              event-type='Component.TemplateUpdate' targets='["selectEntityCheckboxTemplate-{{state.unselectedEntity.iri}}"]' data='{"checked": false}'>
+            </mp-event-combine-emit>
+          {{/if}}
+  
+          <mp-event-combine-emit event-type='Component.TemplateUpdate' targets='["custom-selectedEntitiesCard"]' data='{
+            "selectedEntities": "{{pass-value state.selectedEntities}}"
+          }'></mp-event-combine-emit>
+        </template>
+      </mp-event-combine>
+    <div data-flex-layout='row stretch-stretch'>
+      <div data-flex-self='md-full'>
+        <semantic-table
+          id='search-result-table'
+          query='
+            SELECT DISTINCT ?subject WHERE {}
+            {{#if searchKeyword}}ORDER BY DESC(?score){{/if}} {{#unless selected}}LIMIT 4{{/unless}}
+          '
+          options='{"showFilter": false}'
+          tuple-template='{{> template}}'
+          no-result-template='{{#if domain}}{{> ::custom-noResultTemplate}}{{/if}}'
+          class='SearchCardResult--table'
+          prefetch-labels='false'
+        >
+          <template id='template'>
+            {{#> Platform:SearchResultsCustomization::resultsTemplate}}
+              {{#if (isIri subject)}}
+                <div class='SearchCardResult--card'>
+                  {{#if (cond-or (cond-eq category.iri "http://www.w3.org/ns/org#Organization") (cond-eq category.iri "http://data.europa.eu/a4g/ontology#Notice"))}}
+                  <div class='SearchCardResult--contentWrapper'>
+                    <div style='display: flex; flex-direction: row'>
+                      <div>
+                      <div class='SearchCardResult--title'>
+                        {{#if (cond-eq showKnowledgePanel true)}}
+                        <h4 style='margin-top:6px'>
+                          <!-- <mp-highlight-label iri="{{subject.value}}" highlight='{{searchKeyword}}' split-token='true'></mp-highlight-label> -->
+                          <mp-knowledge-panel-trigger iri='{{subject.value}}'></mp-knowledge-panel-trigger>
+                        </h4>
+                        {{/if}}
+                      </div>
+                      {{> ::entityInfo kind="results" iri=subject.value type=category.iri}}
+                      </div>
+                    </div>
+                  </div>
+                  {{/if}}
+                  <!-- <div class='SearchCardResult--buttons'>
+                    {{> ::custom-selectEntityCheckbox}}
+                    {{> ::custom-addToSearchButton subject=subject.value}}
+                  </div> -->
+                </div>
+              {{else}}
+                <div class='SearchCardResult--card'>
+                  <div class='SearchCardResult--contentWrapper'>
+                    <div class='SearchCardResult--title'>
+                      {{subject.value}}
+                    </div>
+                  </div>
+                </div>
+              {{/if}}
+            {{/Platform:SearchResultsCustomization::resultsTemplate}}
+          </template>
+        </semantic-table>
+      </div>
+      <mp-knowledge-panel-frame></mp-knowledge-panel-frame>
+    </div>
+      {{> ::custom-selectedEntitiesCard}}
+    </div>
+    {{> ::custom-searchResultsHeader}}
+    {{> ::custom-searchResultsFooter}}
+  </template-fragment>
+  
+  <template-fragment export id="custom-noResultTemplate">
+    <div class='SearchQueryUniversal--noResultTemplate'>
+      <div class='material-symbols-outlined SearchQueryUniversal--noResultTemplateIcon' aria-hidden="true">
+        hide_source
+      </div>
+      <div class='SearchQueryUniversal--noResultTemplateTitle'>
+        {{#if latestSearchTerm}}
+          No results for “{{latestSearchTerm}}”
+        {{else}}
+          No results for your criteria
+        {{/if}}
+      </div>
+      <div>
+        {{#if latestSearchTerm}}
+          Consider rephrasing or clearing your search
+        {{else}}
+          Consider revising or clearing your search
+        {{/if}}
+      </div>
+      <mp-event-trigger type='UniversalSearch.ClearSearch' targets='["{{queryFormulationComponentId}}"]'>
+        <button class='btn btn-sm btn-outline-danger SearchQueryUniversal--noResultTemplateButton'>
+          Clear search
+        </button>
+      </mp-event-trigger>
+    </div>
+  </template-fragment>
+  
+  <template-fragment id="entityInfo" export>
+    <semantic-search-query-universal-entity-infos iri="{{iri}}" type="{{type}}" kind="{{kind}}">
+      <semantic-search-query-universal-entity-info for='["http://data.europa.eu/a4g/ontology#Notice"]' 
+        visualization='{
+          "disambiguation": {
+            "query": "
+              SELECT DISTINCT (SAMPLE(?desc) as ?description) WHERE {
+                ?subject owl:sameAs ?obj.
+                FILTER (!isBlank(?obj))
+                SERVICE wiki:sparql {
+                  ?obj schema:description ?desc.
+                  FILTER LANGMATCHES( lang(?desc), \"en\" )  
+                }
+              }",
+            "template": "{{> disambiguationTemplate}}"
+          },
+          "results": {
+            "query": "
+            PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+            PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+            
+            PREFIX dct: <http://purl.org/dc/terms/> 
+            PREFIX cccev: <http://data.europa.eu/m8g/> 
+            PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+              
+            SELECT DISTINCT
+              ?subject
+              ?id
+              ?idStr
+              ?title
+              ?description
+              
+              ?lang
+              ?langLabel
+              ?hasNoticeType
+              ?hasNoticeTypeLabel
+              ?hasFormType
+              ?hasFormTypeLabel
+              ?previousNotice
+              ?succeedingNotice
+            
+              ?buyerOrg
+              ?legalName
+              ?mainActivity
+              ?mainActivityLabel
+              ?orgCountryLabel
+              ?estimatedValue
+              ?estValCurrencyLabel
+            WHERE {
+              {
+                ?subject a ?type .
+                FILTER(?type in (
+                    epo:Notice,
+                    epo:CompetitionNotice,
+                    epo:CompletionNotice,
+                    epo:ResultNotice,
+                    epo:DirectAwardPrenotificationNotice,
+                    epo:ContractModificationNotice,
+                    epo:PlanningNotice
+                )) .
+                ?subject ?procedureProp ?procedure .
+                FILTER (?procedureProp IN (epo:refersToProcedure, epo:announcesProcedure))
+                OPTIONAL {
+                    ?subject epo:hasID ?id .
+                    ?id epo:hasIdentifierValue ?idStr . 
+                }
+                OPTIONAL { ?procedure ?descriptionProp ?procDescription 
+                  FILTER(?descriptionProp in (
+                      dct:description,
+                      epo:hasDescription
+                  )) .
+                }
+                OPTIONAL {
+                  ?procedure epo:hasEstimatedValue [
+                      epo:hasAmountValue ?estimatedValue ; epo:hasCurrency ?estValCurrency
+                  ] .
+                  SERVICE Service:label {
+                      ?estValCurrency mplabel:label ?estValCurrencyLabel ;
+                      mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                  }
+                }
+              
+                ?subject epo:announcesRole ?role .
+                  ?role a epo:Buyer ;
+                    epo:playedBy ?buyerOrg .
+                OPTIONAL { 
+                  ?buyerOrg epo:hasLegalName ?legalName . 
+                  FILTER LANGMATCHES( lang(?legalName), \"en\" ) 
+                }
+                OPTIONAL { ?buyerOrg epo:hasLegalName ?legalName . }
+                OPTIONAL { ?buyerOrg epo:hasBuyerLegalType ?legalType }
+                OPTIONAL {
+                  ?buyerOrg epo:hasMainActivity ?mainActivity 
+                  SERVICE Service:label {
+                      ?mainActivity mplabel:label ?mainActivityLabel ;
+                      mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                    }
+                }
+                OPTIONAL {
+                  ?buyerOrg cccev:registeredAddress [epo:hasCountryCode ?orgCountry] . 
+                  SERVICE Service:label {
+                    ?orgCountry mplabel:label ?orgCountryLabel ;
+                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                  }
+                }
+                OPTIONAL {
+                  ?subject epo:hasPublicationDate ?_publicationDate 
+                  BIND(STRDT(CONCAT(SUBSTR(?_publicationDate, 1, 4), \"-\", SUBSTR(?_publicationDate, 5, 2), \"-\", SUBSTR(?_publicationDate, 7, 2)), xsd:date) AS ?publicationDate).
+                }
+                OPTIONAL { ?subject epo:hasDispatchDate ?dispatchDate } 
+                OPTIONAL { ?subject dct:description ?description } 
+                OPTIONAL { ?subject dct:title ?title }
+                OPTIONAL {
+                  ?subject epo:refersToPrevious ?previousNotice
+                } 
+                OPTIONAL {
+                  ?subject epo:hasNoticeType ?hasNoticeType
+                  SERVICE Service:label {
+                    ?hasNoticeType mplabel:label ?hasNoticeTypeLabel ;
+                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                  }
+                }
+                OPTIONAL { 
+                  ?subject epo:hasFormType ?hasFormType
+                  SERVICE Service:label {
+                    ?hasFormType mplabel:label ?hasFormTypeLabel ;
+                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                  }
+                }
+                OPTIONAL {
+                  ?subject epo:hasOfficialLanguage ?lang .
+                  SERVICE Service:label {
+                    ?lang mplabel:label ?langLabel ;
+                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                  }
+                }
+              } UNION {
+                ?subject a ?type .
+                FILTER(?type in (
+                    epo:Notice,
+                    epo:CompetitionNotice,
+                    epo:CompletionNotice,
+                    epo:ResultNotice,
+                    epo:DirectAwardPrenotificationNotice,
+                    epo:ContractModificationNotice,
+                    epo:PlanningNotice
+                )) .
+                ?succeedingNotice epo:refersToPrevious ?subject 
+              }
+            }",
+            "template": "{{> resultsTemplate}}"
+          }
+        }'>
+        <template id="disambiguationTemplate">
+          <span class="separator"></span>
+          {{#each bindings}}{{description.value}}{{/each}}
+        </template>
+        <template id="resultsTemplate">
+          {{#each bindings}}
+          {{#bind key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true }}
+              {{#if hasNoticeTypeLabel}}
+                <p style="color: rgb(20, 2, 84)">{{hasNoticeTypeLabel.value}} notice</p>
+              {{/if}}
+              {{#if title}}
+                <p>{{title.value}}</p>
+              {{else}}
+                {{#if idStr}}
+                {{log "ID FOR NOTICE" idStr subject}}
+                <p class="small" style="color: rgb(7, 0, 33)">{{idStr.value}}</p>
+                {{/if}}
+              {{/if}}
+              {{#if description}}<p>{{> Platform:customTemplateFragments::TruncateText text=description.value}}</p>{{/if}}
+              {{#if previousNotice}}<p>Refers to the previous <i>{{> Platform:customTemplateFragments::Semlink iri=previousNotice.value }}</i> notice</p>{{/if}}
+              {{#if succeedingNotice}}<p>Is referred by the succeeding <i>{{> Platform:customTemplateFragments::Semlink iri=succeedingNotice.value }}</i> notice</p>{{/if}}
+              <div style='display: flex; flex-direction: row;' >
+                <div>
+                  <p class='small'>
+                    {{#if legalName}}
+                      For <i>{{> Platform:customTemplateFragments::Semlink iri=buyerOrg.value label=legalName.value}}</i>{{#if orgCountryLabel}} from <i>{{orgCountryLabel.value}}</i>{{/if}}
+                    {{/if}}
+                  </p>
+                  {{#if publicationDate}}
+                    <p class="small">
+                      {{> Platform:customTemplateFragments::KeyValueRow key="Publication date" value=publicationDate.value }}
+                    </p>
+                  {{/if}}
+                  {{#if estimatedValue}}
+                    <p class="small">
+                      {{> Platform:customTemplateFragments::KeyValueRow key="Estimated value" value=(number-format estimatedValue.value style="currency" currency=estValCurrencyLabel.value) }}
+                    </p>
+                  {{/if}}
+                  {{#if hasFormTypeLabel}}
+                    <p class="small">
+                      {{> Platform:customTemplateFragments::KeyValueRow key="Business opportunity" value=hasFormTypeLabel.value }}
+                    </p>
+                  {{/if}}
+                  {{#if langLabel}}
+                  <p class="small">
+                      {{> Platform:customTemplateFragments::KeyValueRow key="Language" value=langLabel.value }}
+                    </p>
+                  {{/if}}
+                </div>
+              </div>
+            {{/bind}}
+          {{/each}}
+        </template>
+      </semantic-search-query-universal-entity-info>
+      <semantic-search-query-universal-entity-info for='["http://www.w3.org/ns/org#Organization"]' 
+        visualization='{
+          "disambiguation": {
+            "query": "
+              PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+              SELECT DISTINCT (SAMPLE(?_name) as ?name) WHERE {
+                ?subject epo:hasLegalName ?_name.
+                FILTER (!isBlank(?name))
+              }",
+            "template": "{{> disambiguationTemplate}}"
+          },
+          "results": {
+            "query": "
+            PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
+            PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+
+            PREFIX cccev: <http://data.europa.eu/m8g/> 
+            PREFIX legal: <https://www.w3.org/ns/legal#>
+            PREFIX locn: <http://www.w3.org/ns/locn#>
+            PREFIX org: <http://www.w3.org/ns/org#> 
+
+            PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
+                
+            SELECT DISTINCT
+                ?subject
+                ?legalName
+                ?mainActivity
+                ?mainActivityLabel
+                ?fullAddress
+                ?postName
+                ?postCode
+                ?thoroughfare
+                ?hasCountryCode
+                ?countryCodeLabel
+            WHERE {
+                ?subject a ?type .
+                FILTER(?type in (
+                    cccev:Organization,
+                    org:Organization
+                )) .
+                OPTIONAL { ?subject epo:hasLegalName ?legalName }
+                OPTIONAL {
+                    ?subject epo:hasMainActivity ?mainActivity
+                    SERVICE Service:label {
+                        ?mainActivity mplabel:label ?mainActivityLabel ;
+                        mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                    }
+                }
+                OPTIONAL {
+                    ?subject cccev:registeredAddress|legal:registeredAddress ?addr
+                    OPTIONAL {
+                        ?addr epo:hasCountryCode ?hasCountryCode
+                        SERVICE Service:label {
+                            ?hasCountryCode mplabel:label ?countryCodeLabel ;
+                            
+                        }
+                    }
+                    OPTIONAL { ?addr epo:hasNutsCode ?hasNutsCode }
+                    OPTIONAL { ?addr locn:postName ?postName }
+                    OPTIONAL { ?addr locn:postCode ?postCode }
+                    OPTIONAL { ?addr locn:fullAddress ?fullAddress }
+                    OPTIONAL { ?addr locn:thoroughfare ?thoroughfare }
+                }
+            }",
+            "template": "{{> resultsTemplate}}"
+          }
+        }'>
+        <template id="disambiguationTemplate">
+          <span class="separator"></span>
+          {{#each bindings}}{{description.value}}{{/each}}
+        </template>
+        <template id="resultsTemplate">
+          {{log "bindings" bindings }}
+          {{#each bindings}}
+          {{#bind key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true }}
+              {{#if legalName}}
+                <p style="color: rgb(20, 2, 84); font-size: 1.1em">{{legalName.value}}</p>
+              {{/if}}
+              {{#if fullAddress}}
+                <p style="color: rgb(30, 30, 31); font-size: 0.9em">{{fullAddress.value}}</p>
+              {{else}}
+              {{log thoroughfare.value postName.value countryCodeLabel.value}}
+                <p style="color: rgb(30, 30, 31); font-size: 0.9em">
+                  {{#if thoroughfare}}{{thoroughfare.value}}, {{/if}}
+                  {{#if postName}}{{postName.value}}, {{/if}}
+                  {{#if countryCodeLabel}}{{countryCodeLabel.value}}{{/if}}
+                </p>
+              {{/if}}
+              <div style='display: flex; flex-direction: row;' >
+                <div>
+                  <p class='small'>
+                    {{#if mainActivity}}
+                      {{> Platform:customTemplateFragments::KeyValueRow key="Main activity" iri=mainActivity.value label=mainActivityLabel.value }}
+                    {{/if}}
+                  </p>
+                </div>
+              </div>
+            {{/bind}}
+          {{/each}}
+        </template>
+      </semantic-search-query-universal-entity-info>
+    </semantic-search-query-universal-entity-infos>
+  </template-fragment>
+  <template-fragment export id="custom-addToSearchButton">
+    {{#if (cond-or (cond-not hasConjuncts) show)}}
+      <mp-event-trigger
+        type='UniversalSearch.ShowRelated'
+        targets='["{{queryFormulationComponentId}}"]'
+        data='{"entityIris": "{{pass-value (if selectedEntities selectedEntities (array-of subject))}}"}'>
+        <button class='btn btn-link btn-unsized SearchCardResult--rightArrowButton'>
+          Explore related
+        </button>
+      </mp-event-trigger>
+    {{/if}}
+  </template-fragment>
+  
+  <template-fragment id="custom-selectEntityCheckbox">
+    {{#if (cond-and domain (cond-not hasConjuncts) (cond-or (cond-eq enableMultiExploreRelated undefined) enableMultiExploreRelated))}}
+      <mp-event-target-template-render id='selectEntityCheckboxTemplate-{{subject.value}}' template='{{>t}}'>
+        <template id='t'>
+          <div style="min-width: 110px;">
+            <mp-event-trigger
+              id="selectEntityCheckbox"
+              type='Component.TemplateUpdate'
+              targets='["selectEntityCheckboxTemplate-{{subject.value}}"]'
+              data='{"checked": "{{#if (cond-eq checked true)}}{{pass-value false}}{{else}}{{pass-value true}}{{/if}}", "iri": "{{subject.value}}"}'>
+              {{#if checked}}
+                <label class="form-check SearchCardResult--selectEntityCheckbox SearchCardResult--selected mb-2">
+                  <input type="checkbox" class="form-check-input" value='{{subject.value}}' defaultChecked />
+                  <span class="small">Selected</span>
+                </label>
+              {{else}}
+                <label class="form-check SearchCardResult--selectEntityCheckbox mb-2">
+                  <input type="checkbox" class="form-check-input" value='{{subject.value}}' />
+                  <span class="small">Select entity</span>
+                </label>
+              {{/if}}
+            </mp-event-trigger>
+          </div>
+        </template>
+      </mp-event-target-template-render>
+    {{/if}}
+  </template-fragment>
+  
+  <template-fragment id="custom-selectedEntitiesCard">
+    <mp-event-target-template-render id='custom-selectedEntitiesCard' template='{{>t}}'>
+      <template id='t'>
+        {{#if selectedEntities}}
+          <div class="custom-selectedEntitiesCardContainer">
+            <div class="custom-selectedEntitiesCard selectedEntities">
+              <div class="lead" style="font-weight: 500;">Entities</div>
+              {{#each selectedEntities as |entity|}}
+                <div>
+                  <mp-label iri='{{entity}}' class='selectedEntityLabel'></mp-label>
+                  <mp-event-trigger
+                    id="unselectEntityButton"
+                    type='Component.TemplateUpdate'
+                    data='{"iri": "{{entity}}"}'>
+                    <button class="btn btn-sm btn-icon btn-outline-danger" style="flex: 0 0 24px;"><span class="material-symbols-outlined" aria-hidden='true' title='delete'>delete</span></button>
+                  </mp-event-trigger>
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{/if}}
+      </template>
+    </mp-event-target-template-render>
+  </template-fragment>
+  
+  <template-fragment export id='custom-searchResultsHeader'>
+    {{#if selected}}
+      <div class='resultHeader selected'>
+        {{> ::custom-searchResultsHeaderInner}}
+      </div>
+    {{else}}
+      <mp-event-trigger
+        type='UniversalSearch.SelectDomain'
+        targets='["{{queryFormulationComponentId}}"]'
+        data='{"domainIri": "{{category.iri}}"}'>
+        <a href='#' class='resultHeader'>
+          {{> ::custom-searchResultsHeaderInner}}
+        </a>
+      </mp-event-trigger>
+    {{/if}}
+  </template-fragment>
+  
+  <template-fragment export id='custom-searchResultsFooter'>
+    {{#if (cond-neq selected true)}}
+      <div class='resultFooter'>
+        <mp-event-trigger
+          type='UniversalSearch.SelectDomain'
+          targets='["{{queryFormulationComponentId}}"]'
+          data='{"domainIri": "{{category.iri}}"}'>
+          <button class='btn btn-link btn-unsized SearchCardResult--rightArrowButton SearchCardResult--viewAllButton'>
+            View all
+          </button>
+        </mp-event-trigger>
+      </div>
+    {{/if}}
+  </template-fragment>
+  
+  <template-fragment id='custom-searchResultsHeaderInner'>
+    <div class='resultHeader {{#if (cond-eq selected true)}}selected{{/if}}'>
+      {{#if selected}}
+        <semantic-search-result-count result-id='search-result-table'
+          template='{{> counts}}'>
+          <template id='counts'>
+            <div class='resultCount'>
+              {{#if (cond-gte numberOfResults limit)}}
+                {{number-format limit locale='en' notation='compact' compactDisplay='long'}}+
+              {{else}}
+                {{number-format numberOfResults locale='en'}}
+              {{/if}}
+              {{#if (cond-eq numberOfResults 1)}}
+                result in&nbsp;
+              {{else}}
+                results in&nbsp;
+              {{/if}}
+            </div>
+            <div class='loaded-counts-explanation'>
+              <semantic-search-query-universal-explanation domain-iri='{{category.iri}}'>
+              </semantic-search-query-universal-explanation>
+            </div>
+            {{#if (cond-gte numberOfResults limit)}}
+              <div>
+                &nbsp;<mp-popover>
+                  <mp-popover-trigger placement="top"
+                    trigger='["click", "hover", "focus"]'
+                    root-close='false'>
+                    <button class="btn btn-sm btn-icon btn-transparent">
+                        <span class="material-symbols-outlined resultCountInfo">info</span>
+                      </button>
+                  </mp-popover-trigger>
+                  <mp-popover-content>Only the first {{number-format limit locale='en' notation='compact' compactDisplay='long'}} results are shown</mp-popover-content>
+                </mp-popover>
+              </div>
+            {{/if}}
+          </template>
+        </semantic-search-result-count>
+      {{else}}
+        <mp-sparql-result-counts
+          id='result-counts'
+          query='SELECT DISTINCT * {}'
+          hard-limit='{{number-add limit 1}}'
+          template='{{> counts}}'>
+          <template id='counts'>
+            <div class='resultCount'>
+              {{#if (cond-gte numberOfResults limit)}}
+                {{number-format limit locale='en' notation='compact' compactDisplay='long'}}+
+              {{else}}
+                {{number-format numberOfResults locale='en'}}
+              {{/if}}
+              {{#if (cond-eq numberOfResults 1)}}
+                result in&nbsp;
+              {{else}}
+                results in&nbsp;
+              {{/if}}
+            </div>
+            <div class='loaded-counts-explanation'>
+              <semantic-search-query-universal-explanation domain-iri='{{category.iri}}'>
+              </semantic-search-query-universal-explanation>
+            </div>
+            {{#if (cond-gte numberOfResults 10000)}}
+              <div>
+                &nbsp;<mp-popover>
+                  <mp-popover-trigger placement="top"
+                    trigger='["click", "hover", "focus"]'
+                    root-close='false'>
+                    <button class="btn btn-sm btn-icon btn-transparent">
+                        <span class="material-symbols-outlined resultCountInfo">info</span>
+                      </button>
+                  </mp-popover-trigger>
+                  <mp-popover-content>Only the first {{number-format limit locale='en' notation='compact' compactDisplay='long'}} results are shown</mp-popover-content>
+                </mp-popover>
+              </div>
+            {{/if}}
+          </template>
+        </mp-sparql-result-counts>
+      {{/if}}
+      <div class='loading-counts-explanation'>
+        <semantic-search-query-universal-explanation domain-iri='{{category.iri}}'>
+        </semantic-search-query-universal-explanation>
+      </div>
+    </div>
+  </template-fragment>
