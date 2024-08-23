@@ -1,11 +1,33 @@
 services:
-  preload:
+  preloadFromDisk:
     container_name: metaphactory-graphdb-preload
     image: ontotext/graphdb:${GRAPHDB_VERSION}
     profiles:
       - data-import
     entrypoint: [ "/opt/graphdb/dist/bin/importrdf", "preload", "--force", "--recursive", "-q", "/tmp", "-c", "/opt/graphdb/graphdb-repo-config.ttl", "/opt/graphdb/home/graphdb-import" ]
 
+    environment:
+      GDB_JAVA_OPTS: >-
+        -Xmx${GRAPHDB_HEAP_SIZE} -Xms${GRAPHDB_HEAP_SIZE}
+        -Dgraphdb.home=/opt/graphdb/home
+        # -Dgraphdb.workbench.importDirectory=/opt/graphdb/home/graphdb-import
+        -Dgraphdb.workbench.cors.enable=true
+        -Denable-context-index=true
+        -Dentity-pool-implementation=transactional
+        -Dhealth.max.query.time.seconds=60
+        -Dgraphdb.append.request.id.headers=true
+        -Dreuse.vars.in.subselects=true
+    volumes:
+      - metaphactory_graphdb_data_volume:/opt/graphdb/home
+      - ${IMPORT_DIR}:/opt/graphdb/home/graphdb-import
+      - ${REPOSITORY_CONFIG_FILE}:/opt/graphdb/graphdb-repo-config.ttl
+  
+  preloadFromRemote:
+    container_name: metaphactory-graphdb-preload-remote-prod
+    image: ontotext/graphdb:${GRAPHDB_VERSION}
+    profiles:
+      - data-import
+    entrypoint: ["bash", "-x", "/opt/app/scripts/entrypoint.sh", "/opt/app/import", "/opt/graphdb/home/graphdb-import", "/opt/graphdb/graphdb-repo-config.ttl" ]
     environment:
       GDB_JAVA_OPTS: >-
         -Xmx${GRAPHDB_HEAP_SIZE} -Xms${GRAPHDB_HEAP_SIZE}
@@ -19,11 +41,13 @@ services:
         -Dreuse.vars.in.subselects=true
     volumes:
       - metaphactory_graphdb_data_volume:/opt/graphdb/home
-      - ${IMPORT_FOLDER}:/opt/graphdb/home/graphdb-import
+      - ${SCRIPTS_DIR}:/opt/app/scripts
+      - ${IMPORT_SPEC_DIR}:/opt/app/import
       - ${REPOSITORY_CONFIG_FILE}:/opt/graphdb/graphdb-repo-config.ttl
+      
 
   graphdb:
-    container_name: metaphactory-graphdb
+    container_name: metaphactory-graphdb-prod
     image: ontotext/graphdb:${GRAPHDB_VERSION}
     restart: unless-stopped
     mem_limit: 2g
@@ -52,7 +76,7 @@ services:
   
   metaphactory:
     image: 'metaphacts/metaphactory:5.3.0'
-    container_name: metaphactory
+    container_name: metaphactory-prod
     depends_on:
       - graphdb
     restart: unless-stopped
@@ -72,8 +96,7 @@ services:
     ports:
       - '8088:8080'
     volumes:
-      - metaphactory_runtime_data:/runtime-data
-      - ${PROJECT_PATH}/apps/3rd_party_apps/nobel-prize/nobelprize-app:/apps/nobel-prize
+      - ${APP_DIR_PATH}:/apps/$APP_NAME}
       - metaphactory_storage:/storage
       - ${PROJECT_PATH}/infra/config/mp-graphdb-config.ttl:/runtime-data/config/repositories/default.ttl:rw
     logging:
@@ -82,7 +105,6 @@ services:
         max-size: 200k
         max-file: '10'
 volumes:
-  metaphactory_runtime_data:
   metaphactory_storage:
   metaphactory_graphdb_data_volume:
 networks:

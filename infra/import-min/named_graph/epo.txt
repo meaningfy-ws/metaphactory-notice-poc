@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/OP-TED/ePO/v4.0.2/implementation/ePO_core/owl_ontology/ePO_core.rdf
+https://raw.githubusercontent.com/OP-TED/ePO/v4.0.2/implementation/ePO_core/owl_ontology/ePO_core_restrictions.rdf
