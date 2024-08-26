@@ -143,6 +143,7 @@
             PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
             PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
             
+            PREFIX dc: <http://purl.org/dc/elements/1.1/>
             PREFIX dct: <http://purl.org/dc/terms/> 
             PREFIX cccev: <http://data.europa.eu/m8g/> 
             PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
@@ -198,10 +199,7 @@
                   ?procedure epo:hasEstimatedValue [
                       epo:hasAmountValue ?estimatedValue ; epo:hasCurrency ?estValCurrency
                   ] .
-                  SERVICE Service:label {
-                      ?estValCurrency mplabel:label ?estValCurrencyLabel ;
-                      mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                  }
+                  ?estValCurrency dc:identifier ?estValCurrencyLabel .
                 }
               
                 ?subject epo:announcesRole ?role .
