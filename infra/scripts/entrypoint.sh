@@ -38,7 +38,7 @@ echo "GraphDB started";
 # 4. import vocabularies, each as a separated named graph
 $SCRIPT_DIR/rest_import.sh "$data_dir_rest" "$repo_cfg" 
 
-# 5. #TODO execute SPARQL query creating indexes 
+# 5. execute SPARQL query creating indexes 
 $SCRIPT_DIR/create_indexes.sh
 
 # 6. remove downloaded files
