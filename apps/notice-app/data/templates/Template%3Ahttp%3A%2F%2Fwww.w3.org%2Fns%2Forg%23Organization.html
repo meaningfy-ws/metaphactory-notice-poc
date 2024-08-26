@@ -59,6 +59,7 @@
       PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
 
       PREFIX bd: <http://www.bigdata.com/rdf#>
+      PREFIX dc: <http://purl.org/dc/elements/1.1/>
       PREFIX p: <http://www.wikidata.org/prop/>
       PREFIX ps: <http://www.wikidata.org/prop/statement/>
       PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
@@ -78,10 +79,8 @@
         VALUES (?locationStmtWikiProp ?locationWikiProp) { (ps:P298 p:P298) }
       }
       BIND(COALESCE(?nuts, ?country) as ?locationCode) .
-      SERVICE Service:label {
-        ?locationCode mplabel:label ?locationCodeLabel ;
-        mplabel:preferredLanguage ?__userPreferredLanguage__ .
-      }
+      ?locationCode dc:identifier ?locationCodeLabel .
+      
       SERVICE <https://query.wikidata.org/sparql> {            
         ?s ?locationStmtWikiProp ?locationCodeLabel .
         ?location ?locationWikiProp ?s .
@@ -254,8 +253,8 @@
     <template id='tpl'>
       {{#each bindings}}
         {{#bind hide-if-undef=true}}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasCountryCode.value label=hasCountryCodeLabel.value key="country code"}}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasNutsCode.value label=hasNutsCodeLabel.value key="NUTS code"}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasCountryCode.value label=hasCountryCodeLabel.value key="country"}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasNutsCode.value label=hasNutsCodeLabel.value key="NUTS"}}
           
           {{> Platform:customTemplateFragments::KeyValueRow key="Full address" value=fullAddress.value hide-if-undef=true}}
           {{> Platform:customTemplateFragments::KeyValueRow value=postName.value key="Post name" }}

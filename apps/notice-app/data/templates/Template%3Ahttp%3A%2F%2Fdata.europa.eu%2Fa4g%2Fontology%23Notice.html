@@ -484,6 +484,7 @@
   PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
   
   PREFIX adms: <http://www.w3.org/ns/adms#> 
+  PREFIX dc: <http://purl.org/dc/elements/1.1/>
   PREFIX dct: <http://purl.org/dc/terms/>
   PREFIX cccev: <http://data.europa.eu/m8g/> 
   PREFIX org: <http://www.w3.org/ns/org#> 
@@ -545,10 +546,7 @@
           ?procedure epo:hasEstimatedValue [
               epo:hasAmountValue ?estimatedValue ; epo:hasCurrency ?estValCurrency
           ] .
-          SERVICE Service:label {
-              ?estValCurrency mplabel:label ?estValCurrencyLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
+          ?estValCurrency dc:identifier ?estValCurrencyLabel .
       }
       OPTIONAL { ?procedure epo:hasID [epo:hasIdentifierValue ?_id] }
       OPTIONAL { ?procedure adms:identifier [a adms:Identifier ; skos:notation ?_identifier ] }
@@ -1893,6 +1891,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 <template-fragment id="tf-lots-and-tenders--winner">
   <semantic-query query="
       PREFIX cccev: <http://data.europa.eu/m8g/> 
+      PREFIX dc: <http://purl.org/dc/elements/1.1/>
       PREFIX org: <http://www.w3.org/ns/org#> 
       
       PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
@@ -1936,10 +1935,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
             ?awardOutcome epo:hasAwardedValue [
                 epo:hasAmountValue ?lotAwardValue ; epo:hasCurrency ?lotAwardCurrency 
               ] .
-            SERVICE Service:label {
-              ?lotAwardCurrency mplabel:label ?lotAwardCurrencyLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-            }
+              ?lotAwardCurrency dc:identifier ?lotAwardCurrencyLabel .
           }
         }
         ?role a epo:Winner ;
@@ -1975,6 +1971,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 <template-fragment id="tf-lots-and-tenders">
   <semantic-query query="
   PREFIX adms: <http://www.w3.org/ns/adms#> 
+  PREFIX dc: <http://purl.org/dc/elements/1.1/>
   PREFIX dct: <http://purl.org/dc/terms/> 
   PREFIX org: <http://www.w3.org/ns/org#> 
   PREFIX org: <http://www.w3.org/ns/org#> 
@@ -2166,19 +2163,13 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         ?lot epo:hasEstimatedValue [
             epo:hasAmountValue ?lotEstValue ; epo:hasCurrency ?estValCurrency
         ] .
-        SERVICE Service:label {
-            ?estValCurrency mplabel:label ?lotEstValCurrencyLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
-    }
-    OPTIONAL {
+        ?estValCurrency dc:identifier ?lotEstValCurrencyLabel .
+      }
+      OPTIONAL {
         ?lot epo:hasRestatedEstimatedValue [
-            epo:hasAmountValue ?lotRestatedEstValue ; epo:hasCurrency ?estValCurrency
+        epo:hasAmountValue ?lotRestatedEstValue ; epo:hasCurrency ?restatedEstValCurrency
         ] .
-        SERVICE Service:label {
-            ?estValCurrency mplabel:label ?lotRestatedEstValCurrencyLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
+        ?restatedEstValCurrency dc:identifier ?lotRestatedEstValCurrencyLabel .
     }
     OPTIONAL { ?lot epo:hasRestatedEstimatedValue ?hasRestatedEstimatedValue}
     OPTIONAL { ?lot epo:usesChannel [ dct:description ?channel ]}

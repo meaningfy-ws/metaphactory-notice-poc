@@ -1,0 +1,6 @@
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F25/output/form_number_F25_S02/269519-2018/269519-2018.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F25/output/form_number_F25_S02/042771-2018/042771-2018.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_es16/output/cn_sample_2022_10/cn_24_maximal/cn_24_maximal.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F25/output/form_number_F25_S02/269519-2018/269519-2018.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_es16/output/cn_sample_2022_10/cn_24_open/cn_24_open.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F25/output/form_number_F25_S05/374866-2022/374866-2022.ttl
