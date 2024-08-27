@@ -50,11 +50,37 @@
     params:
         iri: IRI to be transformed into URL within the app domain
         label: optional; text for the displayed hyperlink. If not given, then
-               the label is resolved using Label Service.
+               the label is resolved using Label Service (unless `fetch-label` is given).
+        fetch-label: optional; if given then the label is fetched from the database. 
+                     It serves as an alternative to the label service. 
+                     Expects skos:preflabel to be present.
 -->
 <template-fragment export id='Semlink'>
     {{#if iri}}
-    <semantic-link iri="{{iri}}">{{#if label}}{{label}}{{else}}<mp-label iri="{{iri}}"></mp-label>{{/if}}</semantic-link>
+    <semantic-link iri="{{iri}}">
+        {{#if label}}
+            {{label}}
+        {{else}}
+            {{#if fetch-label}}
+            <semantic-query query="
+                PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+                SELECT ?label
+                WHERE {
+                    <{{iri}}> skos:prefLabel ?label .
+                    FILTER LANGMATCHES( lang(?label), ?__userPreferredLanguage__ ) .
+                } LIMIT 1
+                " 
+                template='{{>tpl }}'>
+                <template id='tpl'>
+                    {{#each bindings}}{{label.value}}{{/each}}
+                </template>
+
+            </semantic-query>
+            {{else}}
+                <mp-label iri="{{iri}}"></mp-label>
+            {{/if}}
+        {{/if}}
+    </semantic-link>
     {{^}}
     {{/if}}
 </template-fragment>
@@ -172,6 +198,8 @@
         key: text to be displayed as a label on the left side of the value
         iri: IRI to be transformed into URL within the app domain
         label: text for the displayed hyperlink
+        fetch-label: optional; if given then the label is fetched from the database. 
+                     Expects skos:preflabel to be present.
         hide-if-undef: optional; true or false
         show-kp: If enabled, then icon allowing to display Knowledge Panel will be added
 -->

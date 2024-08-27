@@ -6,7 +6,6 @@ https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F06/output/form_number_F06_S03/272676-2020/272676-2020.ttl
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F20/output/form_number_F20_S02/005017-2018/005017-2018.ttl
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F21/output/form_number_F21_S04/209637-2021/209637-2021.ttl
-https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F03_test/output/batch_D1/000057-2020/000057-2020.ttl
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F23/output/form_number_F23_S01/285087-2016/285087-2016.ttl
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F21/output/form_number_F21_S02/214176-2018/214176-2018.ttl
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F21/output/form_number_F21_S04/376052-2021/376052-2021.ttl
@@ -28,3 +27,6 @@ https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F21/output/form_number_F21_S05/286724-2022/286724-2022.ttl
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F20/output/form_number_F20_S01/212475-2017/212475-2017.ttl
 https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping/main/mappings/package_F06/output/form_number_F06_S05/410600-2022/410600-2022.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping-eforms/1.0.0-rc.6/mappings/package_cn_v1.10/output/sdk_examples_cn/cn_23/cn_23.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping-eforms/1.0.0-rc.6/mappings/package_cn_v1.10/output/sdk_examples_cn/cn_24_open/cn_24_open.ttl
+https://raw.githubusercontent.com/OP-TED/ted-rdf-mapping-eforms/1.0.0-rc.6/mappings/package_cn_v1.10/output/sdk_examples_cn/cn_81/cn_81.ttl

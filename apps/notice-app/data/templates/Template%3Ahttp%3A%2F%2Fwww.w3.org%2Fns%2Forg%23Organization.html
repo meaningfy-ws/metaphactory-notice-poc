@@ -103,9 +103,6 @@
 -->
 <template-fragment id="tf-overview">
   <semantic-query query="
-    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
-
     PREFIX cccev: <http://data.europa.eu/m8g/> 
     PREFIX legal: <https://www.w3.org/ns/legal#>
     PREFIX locn: <http://www.w3.org/ns/locn#>
@@ -116,14 +113,11 @@
     SELECT DISTINCT
         ?org
         ?mainActivity
-        ?mainActivityLabel
         ?hasMainActivityDescription
         ?hasBuyerLegalTypeDescription
         ?hasLegalFormType
         ?hasBuyerLegalType
-        ?hasBuyerLegalTypeLabel
         ?hasRegistrationCountry
-        ?hasRegistrationCountryLabel
         ?hasLegalIdentifier
         ?hasTaxIdentifier
         ?subOrganizationOf
@@ -139,24 +133,12 @@
         OPTIONAL { ?organization epo:hasPrimaryContactPoint ?hasPrimaryContactPoint }
         OPTIONAL {
           ?organization epo:hasBuyerLegalType ?hasBuyerLegalType
-          SERVICE Service:label {
-            ?hasBuyerLegalType mplabel:label ?hasBuyerLegalTypeLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL {
           ?organization epo:hasMainActivity ?mainActivity
-          SERVICE Service:label {
-              ?mainActivity mplabel:label ?mainActivityLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL {
           ?organization epo:hasRegistrationCountry ?hasRegistrationCountry
-          SERVICE Service:label {
-              ?hasRegistrationCountry mplabel:label ?hasRegistrationCountryLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?organization epo:hasLegalIdentifier [ skos:notation ?hasLegalIdentifier ] }
         OPTIONAL { ?organization epo:hasTaxIdentifier ?hasTaxIdentifier }
@@ -164,10 +146,6 @@
         OPTIONAL { ?organization epo:isListedCompany ?isListedCompany }
         OPTIONAL {
           ?organization epo:hasBusinessSize ?hasBusinessSize
-          SERVICE Service:label {
-            ?hasBusinessSize mplabel:label ?hasBusinessSizeLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?organization epo:hasBeneficialOwner ?hasBeneficialOwner }
       }"
@@ -175,15 +153,15 @@
     <template id='tpl'>
       {{#each bindings}}
         {{#bind hide-if-undef=true}}      
-          {{> Platform:customTemplateFragments::KeyIriRow iri=mainActivity.value key="Main activity" label=mainActivityLabel.value}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=mainActivity.value key="Main activity" fetch-label=true}}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasMainActivityDescription.value key="Main activity description" }}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasLegalFormType.value key="Legal form type" }}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasBuyerLegalTypeDescription.value key="Buyer legal type description" }}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBuyerLegalType.value key="Buyer legal type" label=hasBuyerLegalTypeLabel.value}}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasRegistrationCountry.value label=hasRegistrationCountryLabel.value key="Registration country" }}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBuyerLegalType.value key="Buyer legal type" fetch-label=true}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasRegistrationCountry.value fetch-label=true key="Registration country" }}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasLegalIdentifier.value key="Legal identifier" }}
           {{> Platform:customTemplateFragments::KeyValueRow value=isListedCompany.value key="Is listed company" }}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBusinessSize.value label=hasBusinessSizeLabel.value key="Business size" }}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBusinessSize.value fetch-label=true key="Business size" }}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasBeneficialOwner.value key="Beneficial owner" }}
         {{/bind}}
        
@@ -197,9 +175,6 @@
 -->
 <template-fragment id="tf-org-address">
   <semantic-query query="
-    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
-
     PREFIX cccev: <http://data.europa.eu/m8g/> 
     PREFIX legal: <https://www.w3.org/ns/legal#>
     PREFIX locn: <http://www.w3.org/ns/locn#>
@@ -209,9 +184,7 @@
         
     SELECT DISTINCT
         ?hasCountryCode
-        ?hasCountryCodeLabel
         ?hasNutsCode
-        ?hasNutsCodeLabel
         ?postCode
         ?fullAddress
         ?postName
@@ -226,17 +199,9 @@
         BIND ({{orgAddress}} as ?addr)
         OPTIONAL {
           ?addr epo:hasCountryCode ?hasCountryCode
-          SERVICE Service:label {
-            ?hasCountryCode mplabel:label ?hasCountryCodeLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { 
           ?addr epo:hasNutsCode ?hasNutsCode
-          SERVICE Service:label {
-            ?hasNutsCode mplabel:label ?hasNutsCodeLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?addr locn:postName ?postName }
         OPTIONAL { ?addr locn:postCode ?postCode }
@@ -253,8 +218,8 @@
     <template id='tpl'>
       {{#each bindings}}
         {{#bind hide-if-undef=true}}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasCountryCode.value label=hasCountryCodeLabel.value key="country"}}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasNutsCode.value label=hasNutsCodeLabel.value key="NUTS"}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasCountryCode.value fetch-label=true key="country"}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasNutsCode.value key="NUTS"}}
           
           {{> Platform:customTemplateFragments::KeyValueRow key="Full address" value=fullAddress.value hide-if-undef=true}}
           {{> Platform:customTemplateFragments::KeyValueRow value=postName.value key="Post name" }}
@@ -278,9 +243,6 @@
 -->
 <template-fragment id="tf-contact-point">
   <semantic-query query="
-    PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-    PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
-
     PREFIX cccev: <http://data.europa.eu/m8g/> 
     PREFIX legal: <https://www.w3.org/ns/legal#>
     PREFIX locn: <http://www.w3.org/ns/locn#>
@@ -374,7 +336,7 @@
           <template id='tpl'>
             <div style="padding-left: 16px;">
               {{#each bindings}}
-                {{> Platform:customTemplateFragments::IriWithKnowledgePanelView iri=notice.value label=noticeLabel.value }}
+                {{> Platform:customTemplateFragments::IriWithKnowledgePanelView iri=notice.value }}
                 {{#if contactPointInRole}}
                   <div class="section" style="background-color: #fbfbfb; margin-left: 12px">
                     <h5>Contact point in role</h5>

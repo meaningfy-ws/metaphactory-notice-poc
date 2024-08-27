@@ -129,7 +129,6 @@
       ?eSenderDispatchDate
       
       ?lang
-      ?langLabel
       ?unofficialLanguage
       ?noticePublicationNumber
       ?OJSType
@@ -139,10 +138,7 @@
       ?electronicDigest
       ?electronicSignature
       ?hasNoticeType
-      ?hasNoticeTypeLabel
-      ?hasFormType
-      ?hasFormTypeLabel
-      
+      ?hasFormType      
   WHERE {
       BIND (?? as ?notice)
       ?notice a ?type .
@@ -156,11 +152,10 @@
           epo:PlanningNotice
       )) .
   
-      ?notice ?procedureProp ?procedure .
-      FILTER (?procedureProp IN (epo:refersToProcedure, epo:announcesProcedure))
+      ?notice epo:refersToProcedure|epo:announcesProcedure ?procedure .
       OPTIONAL {
-          ?notice epo:hasID ?id .
-          ?id epo:hasIdentifierValue ?idStr . 
+        ?notice epo:hasID ?id .
+        ?id epo:hasIdentifierValue ?idStr . 
       }
   
       OPTIONAL {
@@ -173,18 +168,10 @@
       OPTIONAL { ?notice dct:title ?title }
       OPTIONAL { ?notice epo:hasEFormsSubtype ?eFormsSubtype }
       OPTIONAL {
-        ?notice epo:hasNoticeType ?hasNoticeType
-        SERVICE Service:label {
-          ?hasNoticeType mplabel:label ?hasNoticeTypeLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
+        ?notice epo:hasNoticeType ?hasNoticeType .
       }
       OPTIONAL { 
-        ?notice epo:hasFormType ?hasFormType
-        SERVICE Service:label {
-          ?hasFormType mplabel:label ?hasFormTypeLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
+        ?notice epo:hasFormType ?hasFormType .
       }
       OPTIONAL { ?notice epo:hasFormNumber ?formNumber }
       OPTIONAL { ?notice dct:issued ?issued }
@@ -192,10 +179,6 @@
       OPTIONAL { ?notice epo:hasESenderDispatchDate ?eSenderDispatchDate }
       OPTIONAL {
         ?notice epo:hasOfficialLanguage ?lang .
-        SERVICE Service:label {
-          ?lang mplabel:label ?langLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
       }
       OPTIONAL { ?notice epo:hasUnofficialLanguage ?unofficialLanguage }
       OPTIONAL { ?notice epo:hasOJSType ?OJSType }
@@ -216,9 +199,9 @@
         {{> Platform:customTemplateFragments::KeyLongValueRow key="Description" value=description.value hide-if-undef=true}}      
         {{> Platform:customTemplateFragments::KeyIriRow show-kp=true key="Other notice" iri=otherNotice.value hide-if-undef=true}}
         
-        {{> Platform:customTemplateFragments::KeyIriRow key="Notice type" iri=hasNoticeType.value label=hasNoticeTypeLabel.value hide-if-undef=true}}
-        {{> Platform:customTemplateFragments::KeyIriRow key="Form type" iri=hasFormType.value label=hasFormTypeLabel.value hide-if-undef=true}}
-        {{> Platform:customTemplateFragments::KeyIriRow key="Official language" iri=lang.value label=langLabel.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyIriRow key="Notice type" iri=hasNoticeType.value fetch-label=true hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyIriRow key="Form type" iri=hasFormType.value fetch-label=true hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyIriRow key="Official language" iri=lang.value fetch-label=true hide-if-undef=true}}
         {{> Platform:customTemplateFragments::KeyValueRow key="unofficialLanguage" value=unofficialLanguage.value hide-if-undef=true}}
         {{> Platform:customTemplateFragments::KeyValueRow key="e-forms subtype" value=eFormsSubtype.value hide-if-undef=true}}
         {{> Platform:customTemplateFragments::KeyValueRow key="Form number" value=formNumber.value hide-if-undef=true}}
@@ -282,12 +265,11 @@
 <template-fragment id="tf-lots">
   <semantic-query query="
     PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
-    SELECT DISTINCT ?procedure (COUNT(?lot) AS ?lots_cnt)
+    SELECT ?procedure (COUNT(DISTINCT ?lot) AS ?lots_cnt)
     WHERE {
       BIND (?? as ?notice)
       ?notice a epo:Notice .
-      ?notice ?procedureProp ?procedure .
-      FILTER (?procedureProp IN (epo:refersToProcedure, epo:announcesProcedure))
+      ?notice epo:refersToProcedure|epo:announcesProcedure ?procedure .
       ?procedure a epo:Procedure ;
         epo:hasProcurementScopeDividedIntoLot ?lot .
     }
@@ -342,7 +324,7 @@
       PREFIX cccev: <http://data.europa.eu/m8g/> 
       PREFIX org: <http://www.w3.org/ns/org#> 
       PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
-      SELECT DISTINCT ?buyerOrg ?legalName ?mainActivity ?mainActivityLabel ?orgAddress
+      SELECT DISTINCT ?buyerOrg ?legalName ?mainActivity ?orgAddress
       WHERE {
         BIND (?? as ?notice)
         ?notice a epo:Notice .
@@ -352,10 +334,6 @@
         OPTIONAL { ?buyerOrg epo:hasLegalName ?legalName . }
         OPTIONAL {
           ?buyerOrg epo:hasMainActivity ?mainActivity 
-          SERVICE Service:label {
-              ?mainActivity mplabel:label ?mainActivityLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-            }
         }
         OPTIONAL { ?buyerOrg cccev:registeredAddress ?orgAddress . }
       }
@@ -364,7 +342,7 @@
     <template id='tpl2'>
       {{#each bindings}}
         {{> Platform:customTemplateFragments::KeyIriRow show-kp=true key="Buyer organization" iri=buyerOrg.value label=legalName.value }}
-        {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity.value label=mainActivityLabel.value hide-if-undef=true}}
+        {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity.value fetch-label=true hide-if-undef=true}}
       {{/each}}
     </template>
   </semantic-query>
@@ -502,10 +480,8 @@
       ?estimatedValue
       ?estValCurrencyLabel
       ?mainFeature 
-      ?procedureType # EXT
-      ?procedureTypeLabel
-      ?cpv  # EXT
-      ?cpvLabel
+      ?procedureType
+      ?cpv
   
       ?designContest
       ?executedByProcurementServiceProvider
@@ -523,8 +499,7 @@
       ?recurrenceDescription
       ?concession
       ?launchFrameworkAgreementMaximumValue
-      ?legalBasis # EXT
-      ?legalBasisLabel
+      ?legalBasis
       ?legalBasisDescription
       ?usesTechnique
       ?SubjectToTerm
@@ -554,17 +529,9 @@
       OPTIONAL { ?procedure epo:hasMainFeature ?mainFeature }
       OPTIONAL {
         ?procedure epo:hasProcedureType ?procedureType .
-        SERVICE Service:label {
-          ?procedureType mplabel:label ?procedureTypeLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
       }
       OPTIONAL {
         ?procedure epo:hasPurpose [epo:hasMainClassification ?cpv]
-        SERVICE Service:label {
-          ?cpv mplabel:label ?cpvLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
       }
       OPTIONAL {
           ?procedure ?titlePred ?title ;
@@ -593,10 +560,6 @@
       BIND(EXISTS { ?procedure epo:fulfillsStrategicProcurement [ epo:fulfillsRequirement ?strategicProcurement ] } AS ?hasStrategicProcurement)
       OPTIONAL {
         ?procedure epo:hasLegalBasis ?legalBasis
-        SERVICE Service:label {
-          ?legalBasis mplabel:label ?legalBasisLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
       }
       OPTIONAL { ?procedure epo:usesTechnique ?usesTechnique }
       OPTIONAL { ?procedure epo:isSubjectToTerm ?SubjectToTerm }
@@ -608,12 +571,12 @@
     <template id='tpl'>
       {{#each bindings}}
       {{> Platform:customTemplateFragments::KeyValueRow key="ID" value=id.value }}
-      {{#if procedureType}}{{> Platform:customTemplateFragments::KeyIriRow key="Procedure type" iri=procedureType.value label=procedureTypeLabel.value hide-if-undef=true}}{{/if}}
+      {{#if procedureType}}{{> Platform:customTemplateFragments::KeyIriRow key="Procedure type" iri=procedureType.value fetch-label=true hide-if-undef=true}}{{/if}}
       {{> Platform:customTemplateFragments::KeyValueRow key="Title" value=title.value }}
       {{> Platform:customTemplateFragments::KeyLongValueRow key="Description" value=description.value }}
       {{#if estimatedValue}}{{> Platform:customTemplateFragments::KeyValueRow key="Estimated value" value=(number-format estimatedValue.value style="currency" currency=estValCurrencyLabel.value) }}{{/if}}
       {{> Platform:customTemplateFragments::KeyValueRow key="Main feature" value=mainFeature.value }}
-      {{#if cpv }}{{> Platform:customTemplateFragments::KeyIriRow key="Purpose (CPV)" iri=cpv.value label=cpvLabel.value }}{{/if}}
+      {{#if cpv }}{{> Platform:customTemplateFragments::KeyIriRow key="Purpose (CPV)" iri=cpv.value fetch-label=true }}{{/if}}
       {{> Platform:customTemplateFragments::KeyLongValueRow key="Additional information" value=additionalInformation.value }}
       <bs-accordion class="wide-card">
         <!-- <bs-accordion default-active-key="expand"> -->
@@ -640,7 +603,7 @@
                   {{> Platform:customTemplateFragments::KeyValueRow key="Concession" value=concession.value }}
                   {{> Platform:customTemplateFragments::KeyValueRow key="Launch framework agreement maximum value" value=launchFrameworkAgreementMaximumValue.value }}
                   {{> Platform:customTemplateFragments::KeyLongValueRow key="Legal basis description" value=legalBasisDescription.value }}
-                  {{> Platform:customTemplateFragments::KeyIriRow key="Legal basis" iri=legalBasis.value label=legalBasisLabel.value hide-if-undef=true}}
+                  {{> Platform:customTemplateFragments::KeyIriRow key="Legal basis" iri=legalBasis.value fetch-label=true hide-if-undef=true}}
                   {{> Platform:customTemplateFragments::KeyValueRow key="Uses technique" value=usesTechnique.value }}
                   {{> Platform:customTemplateFragments::KeyValueRow key="Subject to term" value=SubjectToTerm.value }}
                   {{> Platform:customTemplateFragments::KeyValueRow key="Fulfills strategic procurement" value=fulfillsStrategicProcurement.value }}
@@ -762,7 +725,6 @@
     
     SELECT DISTINCT
       ?term
-      ?termLabel
       ?termType
       ?termTypeLabel
       
@@ -796,10 +758,6 @@
         epo:isSubjectToLotSpecificTerm
       ))
       ?term a epo:ReviewTerm .
-      SERVICE Service:label {
-        ?term mplabel:label ?termLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-      }
     
       OPTIONAL { ?term epo:hasReviewProcedure ?hasReviewProcedure }
       OPTIONAL {
@@ -829,7 +787,7 @@
         {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value }}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
           {{#if infoProviderOrg}}{{> Platform:customTemplateFragments::KeyIriRow show-kp=true key="Information provider" iri=infoProviderOrg.value label=(string-of infoProviderName.value " (" infoProviderId.value ")") hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
@@ -853,8 +811,8 @@
 
       PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
       
-      SELECT DISTINCT ?procTerm ?pstLabel ?procType ?procTypeLabel 
-      ?justification ?directJustification ?directJustificationLabel ?previousProcedure ?previousProcedureLot
+      SELECT DISTINCT ?procTerm ?procType ?procTypeLabel 
+      ?justification ?directJustification ?previousProcedure ?previousProcedureLot
       WHERE {
         BIND (?? as ?notice)
         ?notice ?procedureProp ?procedure .
@@ -868,10 +826,6 @@
         ?procTerm a epo:DirectAwardTerm .
         OPTIONAL {
           ?procTerm epo:hasDirectAwardJustification ?directJustification .
-          SERVICE Service:label {
-            ?directJustification mplabel:label ?directJustificationLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL {
           ?procTerm epo:hasJustification ?justification .
@@ -882,12 +836,6 @@
         OPTIONAL {
           ?procTerm epo:refersToPreviousProcedureLot ?previousProcedureLot .
         }
-      
-
-        SERVICE Service:label {
-          ?procTerm mplabel:label ?pstLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
         
       }
     "
@@ -897,10 +845,10 @@
         {{> Platform:customTemplateFragments::Semlink iri=procType.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value label=pstLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value }}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
-          {{> Platform:customTemplateFragments::KeyIriRow key="Direct justification" iri=directJustification.value label=directJustificationLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Direct justification" iri=directJustification.value fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyLongValueRow key="Justification" value=justification.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyIriRowAutoLabel key="Previous procedure" show-kp=true  iri=previousProcedure.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
           {{> Platform:customTemplateFragments::KeyIriRowAutoLabel show-kp=true key="Previous procedure Lot" iri=previousProcedureLot.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
@@ -925,7 +873,6 @@
 
     SELECT DISTINCT
       ?term
-      ?termLabel
       ?termType
       ?termTypeLabel
 
@@ -954,10 +901,6 @@
       ))
       ?procedure epo:isSubjectToProcedureSpecificTerm ?term .
       ?term a ?termType .
-      SERVICE Service:label {
-        ?term mplabel:label ?termLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-      }
       OPTIONAL { ?term epo:isSubmissionForAllLotsRequired ?isSubmissionForAllLotsRequired }
       OPTIONAL { ?term epo:isOneLotOnlyAllowed ?isOneLotOnlyAllowed }
       OPTIONAL { ?term epo:isAwardedByCPB ?isAwardedByCPB }
@@ -979,7 +922,7 @@
         {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value }}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
           {{> Platform:customTemplateFragments::KeyIriRowAutoLabel show-kp=true iri=definesBudgetProvider.value key="Defines budget provider" key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
@@ -1043,17 +986,13 @@
       ?notice
       
       ?term
-      ?termLabel
       ?termType
       ?termTypeLabel
 
       ?placeOfPerformanceAddress
       ?hasAdditionalContractNature
-      ?hasAdditionalContractNatureLabel
       ?hasBroadPlaceOfPerformance
-      ?hasBroadPlaceOfPerformanceLabel
       ?hasContractNatureType
-      ?hasContractNatureTypeLabel
       ?hasEInvoicingPermission
       ?hasOptionsDescription
       ?hasPaymentArrangement
@@ -1082,33 +1021,17 @@
       }
       ?procedure epo:foreseesContractSpecificTerm ?term .
       ?term a ?termType .
-      SERVICE Service:label {
-        ?term mplabel:label ?termLabel ;
-        mplabel:preferredLanguage ?__userPreferredLanguage__ .
-      }
       OPTIONAL { ?term epo:definesSpecificPlaceOfPerformance [
         locn:address [ locn:fullAddress ?placeOfPerformanceAddress ]
       ] }
       OPTIONAL {
         ?term epo:hasAdditionalContractNature ?hasAdditionalContractNature .
-        SERVICE Service:label {
-          ?hasAdditionalContractNature mplabel:label ?hasAdditionalContractNatureLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
       }
       OPTIONAL { 
         ?term epo:hasBroadPlaceOfPerformance ?hasBroadPlaceOfPerformance 
-        SERVICE Service:label {
-          ?hasBroadPlaceOfPerformance mplabel:label ?hasBroadPlaceOfPerformanceLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }  
       }
       OPTIONAL {
-        ?term epo:hasContractNatureType ?hasContractNatureType 
-        SERVICE Service:label {
-          ?hasContractNatureType mplabel:label ?hasContractNatureTypeLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }  
+        ?term epo:hasContractNatureType ?hasContractNatureType  
       }
       OPTIONAL { ?term epo:hasEInvoicingPermission ?hasEInvoicingPermission }
       OPTIONAL { ?term epo:hasOptionsDescription ?hasOptionsDescription }
@@ -1136,13 +1059,13 @@
         {{> Platform:customTemplateFragments::Semlink iri=term.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value label=pstLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value }}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
-          {{> Platform:customTemplateFragments::KeyIriRow key="Contract nature" iri=hasContractNatureType.value label=hasContractNatureTypeLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow key="Additional contract nature" iri=hasAdditionalContractNature.value  label=hasAdditionalContractNatureLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Contract nature" iri=hasContractNatureType.value fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Additional contract nature" iri=hasAdditionalContractNature.value  fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8" hide-if-undef=true}}
           {{#if placeOfPerformanceAddress}}{{> Platform:customTemplateFragments::KeyLongValueRow key="Performance address" value=placeOfPerformanceAddress.value key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}{{/if}}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBroadPlaceOfPerformance.value key="Broad place of performance" label=hasBroadPlaceOfPerformanceLabel.value hide-if-undef=true}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasBroadPlaceOfPerformance.value key="Broad place of performance" fetch-label=true hide-if-undef=true}}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasOptionsDescription.value key="Options description" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasPerformanceConditions.value key="Performance conditions" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyValueRow value=hasPlaceOfPerformanceAdditionalInformation.value key="Place of performance additional information" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
@@ -1184,7 +1107,6 @@
     
     SELECT DISTINCT
       ?term
-      ?termLabel
       ?termType
       ?termTypeLabel
     
@@ -1203,12 +1125,7 @@
           (epo:SubcontractTerm 'Subcontract term')
       }
       ?procedure epo:foreseesContractSpecificTerm ?term .
-      ?term a ?termType .
-      SERVICE Service:label {
-        ?term mplabel:label ?termLabel ;
-        mplabel:preferredLanguage ?__userPreferredLanguage__ .
-      }
-    
+      ?term a ?termType .    
       OPTIONAL { ?term epo:hasMaximumShare ?hasMaximumShare }
       OPTIONAL { ?term epo:hasMinimumShare ?hasMinimumShare }
       OPTIONAL { ?term epo:hasSubcontractingInvolved ?hasSubcontractingInvolved }
@@ -1223,7 +1140,7 @@
         {{> Platform:customTemplateFragments::Semlink iri=term.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value label=pstLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=procTerm.value }}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>         
           {{> Platform:customTemplateFragments::KeyValueRow value=hasMaximumShare.value key="Maximum share" hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
@@ -1262,7 +1179,6 @@
         ?termType
         ?termTypeLabel
         ?term
-        ?termLabel
         ?hasEAuctionURL
         ?hasReceiptDeadline
         ?hasReceiptExpressionDeadline
@@ -1278,16 +1194,11 @@
         ?hasTenderValidityPeriod
         ?hasSubmissionURL
         ?hasESubmissionPermission
-        ?hasESubmissionPermissionLabel
         ?hasVariantPermission
-        ?hasVariantPermissionLabel
         ?hasECataloguePermission
-        ?hasECataloguePermissionLabel
         ?hasLateSubmissionPermission
-        ?hasLateSubmissionPermissionLabel
         ?hasNonElectronicSubmissionDescription
         ?hasNonElectronicSubmissionJustification
-        ?hasNonElectronicSubmissionJustificationLabel
         ?hasLateSubmissionInformationDescription
         ?hasGuaranteeDescription
         ?hasTenderSubcontractingInformation
@@ -1307,10 +1218,6 @@
           epo:isSubjectToLotSpecificTerm ?term .
       
         ?term a epo:SubmissionTerm .
-        SERVICE Service:label {
-          ?term mplabel:label ?termLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-        }
         OPTIONAL { ?term epo:hasEAuctionURL ?hasEAuctionURL }
         OPTIONAL { ?term epo:hasReceiptDeadline ?hasReceiptDeadline }
         OPTIONAL { ?term epo:hasReceiptExpressionDeadline ?hasReceiptExpressionDeadline }
@@ -1328,42 +1235,22 @@
         OPTIONAL { ?term epo:hasSubmissionURL ?hasSubmissionURL }
         OPTIONAL { 
           ?term epo:hasVariantPermission ?hasVariantPermission
-          SERVICE Service:label {
-            ?hasVariantPermission mplabel:label ?hasVariantPermissionLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { 
           ?term epo:hasECataloguePermission ?hasECataloguePermission
-          SERVICE Service:label {
-            ?hasECataloguePermission mplabel:label ?hasECataloguePermissionLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?term epo:hasNonElectronicSubmissionDescription ?hasNonElectronicSubmissionDescription }
         OPTIONAL {
           ?term epo:hasESubmissionPermission ?hasESubmissionPermission 
-          SERVICE Service:label {
-            ?hasESubmissionPermission mplabel:label ?hasESubmissionPermissionLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { 
           ?term epo:hasNonElectronicSubmissionJustification ?hasNonElectronicSubmissionJustification
-          SERVICE Service:label {
-            ?hasNonElectronicSubmissionJustification mplabel:label ?hasNonElectronicSubmissionJustificationLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?term epo:hasLateSubmissionInformationDescription ?hasLateSubmissionInformationDescription }
         OPTIONAL { ?term epo:hasGuaranteeDescription ?hasGuaranteeDescription }
         OPTIONAL { ?term epo:hasTenderSubcontractingInformation ?hasTenderSubcontractingInformation }
         OPTIONAL { 
           ?term epo:hasLateSubmissionPermission ?hasLateSubmissionPermission .
-          SERVICE Service:label {
-            ?hasLateSubmissionPermission mplabel:label ?hasLateSubmissionPermissionLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
       }
         
@@ -1371,7 +1258,7 @@
     number-of-displayed-rows="6" id="semantic-table-proc-spec-terms" tuple-template='
     <bs-card class="term-card h-100">
       <bs-card-header>
-        {{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}
+        {{> Platform:customTemplateFragments::Semlink iri=term.value }}
       </bs-card-header>
       <bs-card-body class="term-card-body">
         <bs-card-text>
@@ -1386,11 +1273,11 @@
           
           {{> Platform:customTemplateFragments::KeyLinkRow key="e-auction" iri=hasEAuctionURL}}
           {{> Platform:customTemplateFragments::KeyLongValueRow key="Late submission information description" value=hasLateSubmissionInformationDescription.value hide-if-undef=true}}
-          {{> Platform:customTemplateFragments::KeyIriRow key="Non electronic submission justification" iri=hasNonElectronicSubmissionJustification.value label=hasNonElectronicSubmissionJustificationLabel.value}}
-          {{> Platform:customTemplateFragments::KeyIriRow key="Late submission permission" iri=hasLateSubmissionPermission.value label=hasLateSubmissionPermissionLabel.value }}
-          {{> Platform:customTemplateFragments::KeyIriRow key="E submission permission" iri=hasESubmissionPermission.value label=hasESubmissionPermissionLabel.value }}
-          {{> Platform:customTemplateFragments::KeyIriRow key="Variant permission" iri=hasVariantPermission.value label=hasVariantPermissionLabel.value }}
-          {{> Platform:customTemplateFragments::KeyIriRow key="E catalogue permission" iri=hasECataloguePermission.value label=hasECataloguePermissionLabel.value }}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Non electronic submission justification" iri=hasNonElectronicSubmissionJustification.value fetch-label=true}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Late submission permission" iri=hasLateSubmissionPermission.value fetch-label=true }}
+          {{> Platform:customTemplateFragments::KeyIriRow key="E-submission permission" iri=hasESubmissionPermission.value fetch-label=true }}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Variant permission" iri=hasVariantPermission.value fetch-label=true }}
+          {{> Platform:customTemplateFragments::KeyIriRow key="E-catalogue permission" iri=hasECataloguePermission.value fetch-label=true }}
 
           {{#if hasReceiptTenderDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Receipt tender deadline" value=(dateTimeFormat hasReceiptTenderDeadline.value "YYYY-MM-DD H:mm:ss Z") }}{{/if}}
           {{#if hasReceiptExpressionDeadline}}{{> Platform:customTemplateFragments::KeyValueRow key="Receipt expression deadline" value=(dateTimeFormat hasReceiptExpressionDeadline.value "YYYY-MM-DD H:mm:ss Z") }}{{/if}}
@@ -1415,35 +1302,26 @@
 -->
 <template-fragment id="tf-lots-and-tenders--criteria">
   <semantic-table query="
-  PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-
-PREFIX locn: <http://www.w3.org/ns/locn#> 
-PREFIX cccev: <http://data.europa.eu/m8g/> 
-PREFIX dct: <http://purl.org/dc/terms/>
-
-PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
-  
-  SELECT 
-    ?criterion
-	?criterionType
-	?criterionTypeLabel
-    ?criterionLabel
-    ?description
-  WHERE {
-    BIND({{lot}} AS ?lot)
-    ?lot epo:specifiesProcurementCriterion ?criterion .
-    OPTIONAL { ?criterion ?descriptionProp ?description }
-    FILTER(?descriptionProp in (
-        cccev:description,
-        dct:description,
-        epo:hasDescription
-    )) .
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX locn: <http://www.w3.org/ns/locn#> 
+    PREFIX cccev: <http://data.europa.eu/m8g/> 
+    PREFIX dct: <http://purl.org/dc/terms/>
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#> 
     
-    ?criterion a ?criterionType .
-  	?criterion skos:prefLabel ?criterionLabel .
-    ?criterionType skos:prefLabel ?criterionTypeLabel .
-  }
-    "
+    SELECT 
+      ?criterion
+      ?criterionType
+      ?criterionTypeLabel
+      ?criterionLabel
+      ?description
+    WHERE {
+      BIND({{lot}} AS ?lot)
+      ?lot epo:specifiesProcurementCriterion ?criterion .
+      OPTIONAL { ?criterion cccev:description|dct:description|epo:hasDescription ?description }
+      ?criterion a ?criterionType .
+      ?criterionType skos:prefLabel ?criterionTypeLabel .
+      OPTIONAL { ?criterion skos:prefLabel ?criterionLabel }
+    }"
     number-of-displayed-rows="6" id="semantic-table-criterion" 
     options='{"showFilter": false}'
     tuple-template='
@@ -1486,7 +1364,6 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
       ?termType
       ?termTypeLabel
       ?term
-      ?termLabel
       ?hasDeadline
       ?isSecurityClearanceRequired
       ?hasDescription
@@ -1516,7 +1393,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
       {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
     </bs-card-header>
     <bs-card-body class="term-card-body">
-      <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+      <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value }}</h6>
       <bs-card-text>
         <p>{{stType.value}} </p>
         
@@ -1552,13 +1429,11 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         ?termType
         ?termTypeLabel
         ?term
-        ?termLabel
         
         ?hasMaximumParticipantsNumber
         ?hasDurationExtensionJustification
         ?hasFrameworkAgreementType
         ?hasBuyerCategoryDescription
-        ?hasFrameworkAgreementTypeLabel
         
       WHERE {
         BIND(?? as ?notice)
@@ -1590,10 +1465,6 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         OPTIONAL { ?term epo:hasDurationExtensionJustification ?hasDurationExtensionJustification }
         OPTIONAL { 
           ?term epo:hasFrameworkAgreementType ?hasFrameworkAgreementType
-          SERVICE Service:label {
-            ?hasFrameworkAgreementType mplabel:label ?hasFrameworkAgreementTypeLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?term epo:hasBuyerCategoryDescription ?hasBuyerCategoryDescription } 
       }
@@ -1605,12 +1476,12 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
-        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
+        <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value }}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
           {{> Platform:customTemplateFragments::KeyValueRow key="Maximum participants number" value=hasMaximumParticipantsNumber.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           {{> Platform:customTemplateFragments::KeyLongValueRow key="Buyer category description"  value=hasBuyerCategoryDescription.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow key="Framework agreement type" iri=hasFrameworkAgreementType.value label=hasFrameworkAgreementTypeLabel.value show-kp=true  hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow key="Framework agreement type" iri=hasFrameworkAgreementType.value fetch-label=true show-kp=true  hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
           
         </bs-card-text>
       </bs-card-body>
@@ -1638,6 +1509,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
       SELECT DISTINCT
         ?po
         ?term
+        ?termLabel
         ?hasRestrictedAccessURL
         ?hasPublicAccessURL
         ?isProcurementDocumentRestricted
@@ -1647,11 +1519,6 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         ?definesOfflineAccessProvider
         ?definesCatalogueProvider
         ?definesCatalogueReceiver
-        ?involvesProcurementDocumentLabel
-        ?definesProcurementProcedureInformationProviderLabel
-        ?definesOfflineAccessProviderLabel
-        ?definesCatalogueProviderLabel
-        ?definesCatalogueReceiverLabel
         ?hasDocumentRestrictionJustification
         # ???
         ?refersToPlannedPart
@@ -1671,45 +1538,30 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
           epo:isSubjectToLotSpecificTerm
         ))
         # BIND(<http://data.europa.eu/a4g/resource/id_14549263-b47b-4e59-96a1-2d0d13e19343_Lot_LOT-0001> as ?po)
-        ?term a epo:AccessTerm .
+        BIND(epo:AccessTerm as ?termType) .
+        ?term a ?termType .
+        SERVICE Service:label {
+          ?term mplabel:label ?termLabel ;
+          mplabel:preferredLanguage ?__userPreferredLanguage__ .
+        }
         OPTIONAL { ?term epo:isProcurementDocumentRestricted ?isProcurementDocumentRestricted }
         OPTIONAL { ?term epo:hasRestrictedAccessURL ?hasRestrictedAccessURL }
         OPTIONAL { ?term epo:hasAdditionalInformationDeadline ?hasAdditionalInformationDeadline }
         OPTIONAL { ?term epo:hasPublicAccessURL ?hasPublicAccessURL }
         OPTIONAL {
           ?term epo:involvesProcurementDocument ?involvesProcurementDocument
-          SERVICE Service:label {
-            ?involvesProcurementDocument mplabel:label ?involvesProcurementDocumentLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL {
           ?term epo:definesProcurementProcedureInformationProvider ?definesProcurementProcedureInformationProvider
-          SERVICE Service:label {
-            ?definesProcurementProcedureInformationProvider mplabel:label ?definesProcurementProcedureInformationProviderLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL {
           ?term epo:definesOfflineAccessProvider ?definesOfflineAccessProvider
-          SERVICE Service:label {
-            ?definesOfflineAccessProvider mplabel:label ?definesOfflineAccessProviderLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL {
           ?term epo:definesCatalogueProvider ?definesCatalogueProvider
-          SERVICE Service:label {
-            ?definesCatalogueProvider mplabel:label ?definesCatalogueProviderLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL {
           ?term epo:definesCatalogueReceiver ?definesCatalogueReceiver
-          SERVICE Service:label {
-            ?definesCatalogueReceiver mplabel:label ?definesCatalogueReceiverLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?term epo:refersToPlannedPart ?refersToPlannedPart }
         OPTIONAL { ?term epo:hasDocumentRestrictionJustification ?hasDocumentRestrictionJustification }
@@ -1718,17 +1570,17 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
     number-of-displayed-rows="6" id="semantic-table-proc-spec-terms" tuple-template='
     <bs-card class="term-card h-100">
       <bs-card-header>
-        {{> Platform:customTemplateFragments::Semlink iri=termType.value label=termTypeLabel.value}}
+        {{> Platform:customTemplateFragments::Semlink iri=termType.value label="Access term"}}
       </bs-card-header>
       <bs-card-body class="term-card-body">
         <h6 class="card-title">{{> Platform:customTemplateFragments::Semlink iri=term.value label=termLabel.value}}</h6>
         <bs-card-text>
           <p>{{stType.value}} </p>
-          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=involvesProcurementDocument.value key="Involves procurement document" label=involvesProcurementDocumentLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesProcurementProcedureInformationProvider.value key="Defines procurement procedure information provider" label=definesProcurementProcedureInformationProviderLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesOfflineAccessProvider.value key="Defines offline access provider" label=definesOfflineAccessProviderLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesCatalogueProvider.value key="Defines catalogue provider" label=definesCatalogueProviderLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
-          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesCatalogueReceiver.value key="Defines catalogue receiver" label=definesCatalogueReceiverLabel.value hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=involvesProcurementDocument.value key="Involves procurement document" fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesProcurementProcedureInformationProvider.value key="Defines procurement procedure information provider" fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesOfflineAccessProvider.value key="Defines offline access provider" fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesCatalogueProvider.value key="Defines catalogue provider" fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
+          {{> Platform:customTemplateFragments::KeyIriRow show-kp=true iri=definesCatalogueReceiver.value key="Defines catalogue receiver" fetch-label=true hide-if-undef=true key-sm-offset="0" key-sm="4" val-sm-offset="0" val-sm="8"}}
 
           {{> Platform:customTemplateFragments::KeyLinkRow iri=hasRestrictedAccessURL key="Restricted access URL"}}
           {{> Platform:customTemplateFragments::KeyLinkRow iri=hasPublicAccessURL key="Public access URL"}}
@@ -1906,10 +1758,8 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         ?orgAddress
         ?legalType
         ?businessSize
-        ?businessSizeLabel
       
         ?awardStatus
-        ?awardStatusLabel
         ?lotAwardValue
         ?lotAwardCurrencyLabel
       
@@ -1926,10 +1776,6 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
           ?tenderAwardOutcome ^epo:comprisesTenderAwardOutcome ?awardOutcome .
           OPTIONAL {
             ?awardOutcome epo:hasAwardStatus ?awardStatus 
-            SERVICE Service:label {
-              ?awardStatus mplabel:label ?awardStatusLabel ;
-              mplabel:preferredLanguage ?__userPreferredLanguage__ .
-            }
           }
           OPTIONAL {
             ?awardOutcome epo:hasAwardedValue [
@@ -1945,10 +1791,6 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
         OPTIONAL { ?winnerOrg epo:hasMainActivity ?mainActivity }
         OPTIONAL { 
           ?winnerOrg epo:hasBusinessSize ?businessSize 
-          SERVICE Service:label {
-            ?businessSize mplabel:label ?businessSizeLabel ;
-            mplabel:preferredLanguage ?__userPreferredLanguage__ .
-          }
         }
         OPTIONAL { ?winnerOrg cccev:registeredAddress ?orgAddress }
         
@@ -1959,9 +1801,9 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
     <template id='tpl'>
       {{#each bindings}}
       {{> Platform:customTemplateFragments::KeyIriRow show-kp=true key="Winner organization" iri=winnerOrg.value label=legalName.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity.value label=mainActivityLabel.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyIriRow key="Business size" iri=hasBusinessSize.value label=hasBusinessSizeLabel.value hide-if-undef=true}}
-      {{> Platform:customTemplateFragments::KeyIriRow key="Award status" iri=awardStatus.value label=awardStatusLabel.value hide-if-undef=true}}
+      {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity.value fetch-label=true hide-if-undef=true}}
+      {{> Platform:customTemplateFragments::KeyIriRow key="Business size" iri=hasBusinessSize.value fetch-label=true hide-if-undef=true}}
+      {{> Platform:customTemplateFragments::KeyIriRow key="Award status" iri=awardStatus.value fetch-label=true hide-if-undef=true}}
       {{#if lotAwardValue}}{{> Platform:customTemplateFragments::KeyValueRow key="Award value" value=(number-format lotAwardValue.value style="currency" currency=lotAwardCurrencyLabel.value) }}{{/if}}
       
       {{/each}}
@@ -2022,7 +1864,6 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
     ?launchFrameworkAgreementMaximumValue
     ?legalBasisDescription
     ?legalBasis
-    ?legalBasisLabel
     ?usesTechnique
     ?SubjectToTerm
     ?hasStrategicProcurement
@@ -2186,10 +2027,6 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
     OPTIONAL { ?lot epo:hasLegalBasisDescription ?legalBasisDescription }
     OPTIONAL { 
       ?lot epo:hasLegalBasis ?legalBasis
-      SERVICE Service:label {
-          ?legalBasis mplabel:label ?legalBasisLabel ;
-          mplabel:preferredLanguage ?__userPreferredLanguage__ .
-      }
     }
     OPTIONAL { ?lot epo:usesTechnique [dct:description ?usesTechnique ] }
     OPTIONAL { ?lot epo:isSubjectToTerm ?SubjectToTerm }
@@ -2276,7 +2113,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
                               {{> Platform:customTemplateFragments::KeyValueRow key="Concession" value=concession.value }}
                               {{> Platform:customTemplateFragments::KeyValueRow key="Launch framework agreement maximum value" value=launchFrameworkAgreementMaximumValue.value }}
                               {{> Platform:customTemplateFragments::KeyLongValueRow key="Legal basis description" value=legalBasisDescription.value }}
-                              {{> Platform:customTemplateFragments::KeyIriRow key="Legal basis" iri=legalBasis.value label=legalBasisLabel.value hide-if-undef=true}}
+                              {{> Platform:customTemplateFragments::KeyIriRow key="Legal basis" iri=legalBasis.value fetch-label=true hide-if-undef=true}}
                               {{> Platform:customTemplateFragments::KeyValueRow key="Subject to term" value=SubjectToTerm.value }}
                               {{#if (cond-eq hasStrategicProcurement.value "true")}}{{> Platform:customTemplateFragments::KeyFetchedValuesRow key="Fulfills strategic procurement" resource=lot propertyPath="epo:fulfillsStrategicProcurement / epo:fulfillsRequirement"}}{{/if}}
                               

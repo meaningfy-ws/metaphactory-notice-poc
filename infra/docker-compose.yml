@@ -70,6 +70,7 @@ services:
     ports:
       - "${APP_PORT}:8080"
     volumes:
+      - metaphactory_runtime_data:/runtime-data
       - ${APP_DIR_PATH}:/apps/$APP_NAME}
       - metaphactory_storage:/storage
       - ${PROJECT_PATH}/infra/config/mp-graphdb-config.ttl:/runtime-data/config/repositories/default.ttl:rw
@@ -80,6 +81,7 @@ services:
         max-file: '10'
 
 volumes:
+  metaphactory_runtime_data:
   metaphactory_storage:
   metaphactory_graphdb_data_volume:
 
