@@ -199,6 +199,10 @@
                   ?procedure epo:hasEstimatedValue [
                       epo:hasAmountValue ?estimatedValue ; epo:hasCurrency ?estValCurrency
                   ] .
+                  SERVICE Service:label {
+                      ?estValCurrency mplabel:label ?estValCurrencyLabel ;
+                      mplabel:preferredLanguage ?__userPreferredLanguage__ .
+                  }
                   ?estValCurrency dc:identifier ?estValCurrencyLabel .
                 }
               
