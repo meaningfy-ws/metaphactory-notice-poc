@@ -219,7 +219,7 @@
       {{#each bindings}}
         {{#bind hide-if-undef=true}}
           {{> Platform:customTemplateFragments::KeyIriRow iri=hasCountryCode.value fetch-label=true key="country"}}
-          {{> Platform:customTemplateFragments::KeyIriRow iri=hasNutsCode.value fetch-label=true key="NUTS"}}
+          {{> Platform:customTemplateFragments::KeyIriRow iri=hasNutsCode.value key="NUTS"}}
           
           {{> Platform:customTemplateFragments::KeyValueRow key="Full address" value=fullAddress.value hide-if-undef=true}}
           {{> Platform:customTemplateFragments::KeyValueRow value=postName.value key="Post name" }}
@@ -336,7 +336,7 @@
           <template id='tpl'>
             <div style="padding-left: 16px;">
               {{#each bindings}}
-                {{> Platform:customTemplateFragments::IriWithKnowledgePanelView iri=notice.value fetch-label=true }}
+                {{> Platform:customTemplateFragments::IriWithKnowledgePanelView iri=notice.value }}
                 {{#if contactPointInRole}}
                   <div class="section" style="background-color: #fbfbfb; margin-left: 12px">
                     <h5>Contact point in role</h5>
