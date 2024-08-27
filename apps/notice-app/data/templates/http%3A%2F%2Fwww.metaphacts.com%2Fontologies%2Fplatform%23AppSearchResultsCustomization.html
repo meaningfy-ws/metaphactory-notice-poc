@@ -140,8 +140,7 @@
           },
           "results": {
             "query": "
-            PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-            PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
             
             PREFIX dc: <http://purl.org/dc/elements/1.1/>
             PREFIX dct: <http://purl.org/dc/terms/> 
@@ -156,19 +155,16 @@
               ?description
               
               ?lang
-              ?langLabel
               ?hasNoticeType
               ?hasNoticeTypeLabel
               ?hasFormType
-              ?hasFormTypeLabel
               ?previousNotice
               ?succeedingNotice
             
               ?buyerOrg
+              ?orgCountry
               ?legalName
               ?mainActivity
-              ?mainActivityLabel
-              ?orgCountryLabel
               ?estimatedValue
               ?estValCurrencyLabel
             WHERE {
@@ -213,17 +209,9 @@
                 OPTIONAL { ?buyerOrg epo:hasBuyerLegalType ?legalType }
                 OPTIONAL {
                   ?buyerOrg epo:hasMainActivity ?mainActivity 
-                  SERVICE Service:label {
-                      ?mainActivity mplabel:label ?mainActivityLabel ;
-                      mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                    }
                 }
                 OPTIONAL {
                   ?buyerOrg cccev:registeredAddress [epo:hasCountryCode ?orgCountry] . 
-                  SERVICE Service:label {
-                    ?orgCountry mplabel:label ?orgCountryLabel ;
-                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                  }
                 }
                 OPTIONAL {
                   ?subject epo:hasPublicationDate ?_publicationDate 
@@ -236,25 +224,14 @@
                   ?subject epo:refersToPrevious ?previousNotice
                 } 
                 OPTIONAL {
-                  ?subject epo:hasNoticeType ?hasNoticeType
-                  SERVICE Service:label {
-                    ?hasNoticeType mplabel:label ?hasNoticeTypeLabel ;
-                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                  }
+                  ?subject epo:hasNoticeType ?hasNoticeType .
+                  ?hasNoticeType skos:prefLabel ?hasNoticeTypelabel .
                 }
                 OPTIONAL { 
                   ?subject epo:hasFormType ?hasFormType
-                  SERVICE Service:label {
-                    ?hasFormType mplabel:label ?hasFormTypeLabel ;
-                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                  }
                 }
                 OPTIONAL {
                   ?subject epo:hasOfficialLanguage ?lang .
-                  SERVICE Service:label {
-                    ?lang mplabel:label ?langLabel ;
-                    mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                  }
                 }
               } UNION {
                 ?subject a ?type .
@@ -298,7 +275,7 @@
                 <div>
                   <p class='small'>
                     {{#if legalName}}
-                      For <i>{{> Platform:customTemplateFragments::Semlink iri=buyerOrg.value label=legalName.value}}</i>{{#if orgCountryLabel}} from <i>{{orgCountryLabel.value}}</i>{{/if}}
+                      For <i>{{> Platform:customTemplateFragments::Semlink iri=buyerOrg.value label=legalName.value}}</i>{{#if orgCountry}} from <i>{{> Platform:customTemplateFragments::Semlink iri=orgCountry.value fetch-label=true}}</i>{{/if}}
                     {{/if}}
                   </p>
                   {{#if publicationDate}}
@@ -313,12 +290,12 @@
                   {{/if}}
                   {{#if hasFormTypeLabel}}
                     <p class="small">
-                      {{> Platform:customTemplateFragments::KeyValueRow key="Business opportunity" value=hasFormTypeLabel.value }}
+                      {{> Platform:customTemplateFragments::KeyIriRow key="Business opportunity" iri=hasFormType.value fetch-label=true }}
                     </p>
                   {{/if}}
                   {{#if langLabel}}
                   <p class="small">
-                      {{> Platform:customTemplateFragments::KeyValueRow key="Language" value=langLabel.value }}
+                      {{> Platform:customTemplateFragments::KeyIriRow key="Language" iri=lang.value fetch-label=true}}
                     </p>
                   {{/if}}
                 </div>
@@ -340,9 +317,6 @@
           },
           "results": {
             "query": "
-            PREFIX Service: <http://www.metaphacts.com/ontologies/platform/service/>
-            PREFIX mplabel: <http://www.metaphacts.com/ontologies/platform/service/label/>
-
             PREFIX cccev: <http://data.europa.eu/m8g/> 
             PREFIX legal: <https://www.w3.org/ns/legal#>
             PREFIX locn: <http://www.w3.org/ns/locn#>
@@ -360,7 +334,6 @@
                 ?postCode
                 ?thoroughfare
                 ?hasCountryCode
-                ?countryCodeLabel
             WHERE {
                 ?subject a ?type .
                 FILTER(?type in (
@@ -370,19 +343,11 @@
                 OPTIONAL { ?subject epo:hasLegalName ?legalName }
                 OPTIONAL {
                     ?subject epo:hasMainActivity ?mainActivity
-                    SERVICE Service:label {
-                        ?mainActivity mplabel:label ?mainActivityLabel ;
-                        mplabel:preferredLanguage ?__userPreferredLanguage__ .
-                    }
                 }
                 OPTIONAL {
                     ?subject cccev:registeredAddress|legal:registeredAddress ?addr
                     OPTIONAL {
-                        ?addr epo:hasCountryCode ?hasCountryCode
-                        SERVICE Service:label {
-                            ?hasCountryCode mplabel:label ?countryCodeLabel ;
-                            
-                        }
+                        ?addr epo:hasCountryCode ?hasCountryCode .
                     }
                     OPTIONAL { ?addr epo:hasNutsCode ?hasNutsCode }
                     OPTIONAL { ?addr locn:postName ?postName }
@@ -408,18 +373,17 @@
               {{#if fullAddress}}
                 <p style="color: rgb(30, 30, 31); font-size: 0.9em">{{fullAddress.value}}</p>
               {{else}}
-              {{log thoroughfare.value postName.value countryCodeLabel.value}}
                 <p style="color: rgb(30, 30, 31); font-size: 0.9em">
                   {{#if thoroughfare}}{{thoroughfare.value}}, {{/if}}
                   {{#if postName}}{{postName.value}}, {{/if}}
-                  {{#if countryCodeLabel}}{{countryCodeLabel.value}}{{/if}}
+                  {{#if hasCountryCode}}{{> Platform:customTemplateFragments::Semlink iri=hasCountryCode.value fetch-label=true}}{{/if}}
                 </p>
               {{/if}}
               <div style='display: flex; flex-direction: row;' >
                 <div>
                   <p class='small'>
                     {{#if mainActivity}}
-                      {{> Platform:customTemplateFragments::KeyValueRow key="Main activity" iri=mainActivity.value label=mainActivityLabel.value }}
+                      {{> Platform:customTemplateFragments::KeyIriRow key="Main activity" iri=mainActivity.value fetch-label=true }}
                     {{/if}}
                   </p>
                 </div>
