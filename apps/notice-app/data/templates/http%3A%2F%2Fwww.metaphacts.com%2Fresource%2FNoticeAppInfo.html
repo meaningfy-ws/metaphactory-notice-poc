@@ -29,7 +29,7 @@
     <p class="l1"><a href="#Features">Features</a></p>
     <p class="l2"><a href="#Browse-notice-organization-resources">Browse notice/organization resources</a></p>
     <p class="l3"><a href="#Narrow-down-search-results-by-using-facets">Narrow down search results by using facets</a></p>
-    <p class="l3"><a href="#Narrow-down-search-results-by-searching-by-a-keyword">Narrow down search results by searching by a keyword</a></p>
+    <p class="l3"><a href="#Narrow-down-search-results-by-searching-by-a-keyword">Narrow down search results by using a keyword</a></p>
     <p class="l2"><a href="#Display-details-of-a-resource">Display details of a resource</a></p>
     <p class="l2"><a href="#Navigate-between-notices-and-organizations">Navigate between notices and organizations</a></p>
     <p class="l2"><a href="#Preview-a-resource">Preview a resource</a></p>
@@ -41,22 +41,22 @@
     <p class="l2"><a href="#Map">Map</a></p>
 
     <h1 id="Application-capabilities-overview">Application capabilities overview</h1>
-    The application is designed for procurement notices data. It's organized around the two types of data: Notice (<i>epo:Notice</i>) and organization (<i>org:Organization</i>). It allows following operations on notice and organization data:
+    The application is designed for procurement notices data. It's organized around the two types of data: Notice (<i>epo:Notice</i>) and organization (<i>org:Organization</i>). It allows the following operations on notice and organization data:
     <ol>
         <li>View a resource page</li>
-        <li>Browse</li>
+        <li>Browse resources</li>
         <li>Search by facets</li>
         <li>Search by a keyword</li>
         <li>Navigate between related resource pages (for example visit a buyer page)</li>
     </ol>
     <h2 id="Moving-around-the-application">Moving around the application</h2>
-    <p>The application adheres to the common practice of leveraging hyperlink for the purposes of navigating from one resource to another.</p>
-    Throughout the application, following kinds of resources are accessible via a hyperlink:
+    <p>The application adheres to the common practice of leveraging hyperlinks for navigating from one resource to another.</p>
+    Throughout the application, the following kinds of resources are accessible via hyperlinks:
     <ol>
         <li>
             Underlying Knowledge Graph resources
             <ol>
-                <li>Internal resources having a dedicated details page (Notice or Organization instances; <a href="{{page-publicPath}}/resource/?uri=http%3A%2F%2Fdata.europa.eu%2Fa4g%2Fresource%2Fid_c4c415ee-ac08-4465-8fa6-57568cf69462_Notice">example</a>)</li>
+                <li>Internal resources with a dedicated details page (Notice or Organization instances; <a href="{{page-publicPath}}/resource/?uri=http%3A%2F%2Fdata.europa.eu%2Fa4g%2Fresource%2Fid_c4c415ee-ac08-4465-8fa6-57568cf69462_Notice">example</a>)</li>
                 <li>Internal resources without a dedicated page (<a href="{{page-publicPath}}/resource/?uri=http%3A%2F%2Fdata.europa.eu%2Fa4g%2Fresource%2Fid_c4c415ee-ac08-4465-8fa6-57568cf69462_ProcurementProjectContractTerm_QmFgWdHMQiunuxrdtntYZx">example</a>)</li>
                 <li>Supported vocabulary terms (<a href="{{page-publicPath}}/resource/?uri=http%3A%2F%2Fpublications.europa.eu%2Fresource%2Fauthority%2Fform-type%2Fcompetition">example</a>)</li>
                 <li>ePO ontology terms (<a href="{{page-publicPath}}/resource/?uri=http%3A%2F%2Fdata.europa.eu%2Fa4g%2Fontology%23ProcedureTerm">example</a>)</li>
@@ -77,9 +77,9 @@
         Several notice text fields are supported by the keyword search feature.
     </p>
     <p><i>Limitation: the keyword search is based on exact match of words.</i></p>
-    <p>Use search bar to search for notices having a keyword (key phrase) e.g. as a part of description:</p>
+    <p>Use search bar to search for notices having the given keyword (key phrase) e.g. as a part of a description:</p>
     <img src="{{page-publicPath}}/assets/000012-metaphactory-poc.png">
-    <p>Requested phrase is present inside a procedure description of the found notice:</p>
+    <p>The requested phrase is present inside a procedure description of the found notice:</p>
     <img src="{{page-publicPath}}/assets/000013-metaphactory-poc.png">
     
     
@@ -87,7 +87,7 @@
     Notice and Organization data are presented on dedicated resource details pages. See exemplary <a href="{{page-publicPath}}/resource/?uri=http%3A%2F%2Fdata.europa.eu%2Fa4g%2Fresource%2Fid_2018-S-118-269519_Notice">notice</a> and <a href="{{page-publicPath}}/resource/?uri=http%3A%2F%2Fdata.europa.eu%2Fa4g%2Fresource%2Fid_2022-S-102-286724_Organisation_7D5VmvEvVafBz7JQr2uuS8">organization</a> pages.
 
     <h2 id="Navigate-between-notices-and-organizations">Navigate between notices and organizations</h2>
-    <p>Both notice and organization details pages includes proper sections holding references to a related notice or organization as hyperlinks. </p>
+    <p>Both notice and organization details pages include proper sections holding references to a related notice or organization as hyperlinks. </p>
     <img src="{{page-publicPath}}/assets/000018-metaphactory-poc.png">
     
     <img src="{{page-publicPath}}/assets/000020-metaphactory-poc.png">
@@ -101,7 +101,7 @@
     <h3 id="Resource-details-view">Resource details view</h3>
     <img src="{{page-publicPath}}/assets/000006-metaphactory-poc.png">
     <h2 id="Term-definition-lookup">Term definition lookup</h2>
-    Selected sections of a resource details offer an additional description of a section available after hovering accompanying <span class="material-symbols-outlined" style="color: rgb(177, 177, 179); padding-left: 3px; font-size: 0.9em; vertical-align: -0.2em; display: inline !important">help</span> icon. These descriptions are definitions taken from EPO ontology.
+    Certain sections of a resource detail page offer an additional description of a section available when hovering over the accompanying help icon <span class="material-symbols-outlined" style="color: rgb(177, 177, 179); padding-left: 3px; font-size: 0.9em; vertical-align: -0.2em; display: inline !important">help</span>. These descriptions are definitions taken from EPO ontology.
     <img src="{{page-publicPath}}/assets/000014-metaphactory-poc.png"> 
     
     <h2 id="Integration-with-authority-tables">Integration with authority tables</h2>
@@ -116,9 +116,9 @@
     <img src="{{page-publicPath}}/assets/000008-metaphactory-poc.png">
     <h2 id="Map">Map</h2>
     <p>The organization details page contains a map presenting an approximate location (based on either NUTS or country code) of the organization headquarters.</p>
-    <p>There is a tooltip attached to a map marker which shows a link to the public Wikidata portal developed by Metaphacts which is useful for further exploration. The page also contains a link to a Wikidata resource page itself.</p>
+    <p>There is a tooltip attached to a map marker that shows a link to the public Wikidata portal developed by Metaphacts, which is useful for further exploration. The page also contains a link to the Wikidata resource page itself.</p>
     <img src="{{page-publicPath}}/assets/000021-metaphactory-poc.png">
-    <p>Related <i>wikidata.metaphacts.com</i> page:</p>
+    <p>The related <i>wikidata.metaphacts.com</i> page:</p>
     <img src="{{page-publicPath}}/assets/000022-metaphactory-poc.png">
 
 </div>
